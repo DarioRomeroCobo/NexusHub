@@ -1,0 +1,36 @@
+{
+    "name": "nexushub",
+    "version": "0.0.1",
+    "description": "Proyecto GPS",
+    "keywords": [
+        "ucm",
+        "fdi",
+        "practica",
+        "gps",
+        "node"
+    ],
+    "license": "MIT",
+    "author": "Juan Paredes Cruz, Eric Adrián Caiguaraico Balboa, Adrián García Álvarez, Robert Nicolae Marginean, James Morocho Calero, Pablo Rodríguez Arenas, Darío Romer Cobo, José Ángel Teso Soba",
+    "type": "commonjs",
+    "main": "app.js",
+    "scripts": {
+        "test": "echo \"Error: no test specified\" && exit 1",
+        "start": "node app.js"
+    },
+    "dependencies": {
+        "bcrypt": "^6.0.0",
+        "cookie-parser": "^1.4.7",
+        "ejs": "^3.1.10",
+        "express": "^5.2.1",
+        "express-mysql-session": "^3.0.3",
+        "express-session": "^1.18.2",
+        "express-validator": "^7.3.1",
+        "multer": "^2.0.2",
+        "mysql": "^2.18.1",
+        "nodemon": "^3.1.11",
+        "serve-favicon": "^2.5.1"
+    }, 
+    "jest": {
+        "verbose": true
+    }
+}
