@@ -33,3 +33,8 @@ const sessionStore = new MySqlStore({
 app.get("/", async function (req, res, next) {
     res.render("inicio");
 });
+
+const port = process.env.PORT || 3000;
+app.listen(port, () => {
+    console.log("Servidor iniciado en puerto " + port);
+});
