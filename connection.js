@@ -1,14 +1,15 @@
-const mysql = require("mysql");
+const sql = require("mssql");
 
-const pool = mysql.createPool({
-    host: process.env.DB_HOST,
-    user: process.env.DB_USER,
-    password: process.env.DB_PASS,
-    database: process.env.DB_NAME,
-    port: 3306,
-    ssl: {
-        rejectUnauthorized: true
+const pool = new sql.ConnectionPool({
+    user: "Adminnexushub",
+    password: "Kristin26",
+    server: "nexushub.database.windows.net",
+    database: "NexusHubDB",
+    port: 1433,
+    options: {
+        encrypt: true,
+        trustServerCertificate: false
     }
 });
 
-module.exports = pool; //Esto sirve para exportar la pool de tal forma que los demás archivos puedan verlo
+module.exports = pool;
