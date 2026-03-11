@@ -22,6 +22,13 @@ async function manejadorRegistro(e) {
     const formData = new FormData(formulario);
     const datos = Object.fromEntries(formData.entries());
 
+    if (datos.password !== datos.confirmPassword) {
+        const inputConfirm = formulario.getElementById('#confirmPassword');
+        inputConfirm.setCustomValidity("Las contraseñas no coinciden");
+        formulario.classList.add('was-validated');
+        return;
+    }
+
     try {
         const res = await fetch("/usuario/api/", {
             method: "POST",

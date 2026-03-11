@@ -44,11 +44,26 @@
                                                         class="form-label fw-semibold">Contraseña</label>
                                                     <input type="password"
                                                         class="form-control form-control-lg border-primary"
-                                                        id="password" name="password" placeholder="********" 
+                                                        id="password" name="password" placeholder="******" 
                                                         minlength="6" autocomplete="new-password"
                                                         style="box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);"
                                                         aria-describedby="ayuda-contrasena"
                                                         pattern="^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{6,}$" required>
+                                                </div>
+
+                                                <div class="mb-4">
+                                                    <label for="confirmPassword"
+                                                    class="form-label fw-semibold">Confirmar contraseña</label>
+                                                    <input type="password"
+                                                        class="form-control form-control-lg border-primary"
+                                                        id="confirmPassword" name="confirm" placeholder="******"
+                                                        minlength="6" autocomplete="new-password"
+                                                        style="box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);"
+                                                        aria-describedby="ayuda-contrasena"
+                                                        pattern="^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{6,}$" required>
+                                                        <div class="invalid-feedback">
+                                                            Las contraseñas no coinciden
+                                                        </div>
                                                 </div>
 
                                                 <button type="submit"
