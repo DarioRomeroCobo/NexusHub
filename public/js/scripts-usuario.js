@@ -6,28 +6,35 @@ document.addEventListener("DOMContentLoaded", () =>{
     });
 })
 
-async function manejadorRegistro(e){
+async function manejadorRegistro(e) {
     e.preventDefault();
-
+    
     const formulario = e.target;
+    
+    // Verificar validez ANTES de enviar
+    if (!formulario.checkValidity()) {
+        formulario.classList.add('was-validated');
+        return; // ← detiene el envío si hay errores
+    }
+
+    formulario.classList.add('was-validated');
+    
     const formData = new FormData(formulario);
     const datos = Object.fromEntries(formData.entries());
 
     try {
         const res = await fetch("/usuario/api/", {
             method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
+            headers: { "Content-Type": "application/json" },
             body: JSON.stringify(datos)
         });
         const json = await res.json();
-        if(!json.ok){
+        if (!json.ok) {
             alert(json.error);
             return;
         }
         window.location.replace("/");
-    } catch(err){
+    } catch(err) {
         console.error("Error registro:", err);
     }
 }
