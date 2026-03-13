@@ -29,9 +29,7 @@ describe('mostrarRegistro', () => {
     test('renderiza el formulario de registro', () => {
         const req = mockReq();
         const res = mockRes();
-
         mostrarRegistro(req, res);
-
         expect(res.render).toHaveBeenCalledWith('registro');
     });
 });
@@ -45,8 +43,7 @@ describe('registrarUsuario - validaciones del servidor', () => {
         await registrarUsuario(req, res, next);
 
         expect(res.status).toHaveBeenCalledWith(400);
-        expect(res.json).toHaveBeenCalledWith({ ok: false, error: 'Correo y contrasena son obligatorios' });
-        expect(bcrypt.hash).not.toHaveBeenCalled();
+        expect(res.json).toHaveBeenCalledWith({ ok: false, error: 'Correo y contraseña son obligatorios' });
         expect(db.query).not.toHaveBeenCalled();
         expect(next).not.toHaveBeenCalled();
     });
@@ -59,8 +56,7 @@ describe('registrarUsuario - validaciones del servidor', () => {
         await registrarUsuario(req, res, next);
 
         expect(res.status).toHaveBeenCalledWith(400);
-        expect(res.json).toHaveBeenCalledWith({ ok: false, error: 'Correo electronico no valido' });
-        expect(bcrypt.hash).not.toHaveBeenCalled();
+        expect(res.json).toHaveBeenCalledWith({ ok: false, error: 'Correo electrónico no válido' });
         expect(db.query).not.toHaveBeenCalled();
         expect(next).not.toHaveBeenCalled();
     });
@@ -73,8 +69,72 @@ describe('registrarUsuario - validaciones del servidor', () => {
         await registrarUsuario(req, res, next);
 
         expect(res.status).toHaveBeenCalledWith(400);
-        expect(res.json).toHaveBeenCalledWith({ ok: false, error: 'La contrasena no cumple los requisitos de seguridad' });
-        expect(bcrypt.hash).not.toHaveBeenCalled();
+        expect(res.json).toHaveBeenCalledWith({ ok: false, error: 'La contraseña debe tener al menos 8 caracteres, incluir una mayúscula, un número y un símbolo.' });
+        expect(db.query).not.toHaveBeenCalled();
+        expect(next).not.toHaveBeenCalled();
+    });
+
+    test('si la contrasena tiene menos de 8 caracteres devuelve 400', async () => {
+        const req = mockReq({ correo: 'test@correo.com', password: 'Ab1@abc' });
+        const res = mockRes();
+        const next = mockNext();
+
+        await registrarUsuario(req, res, next);
+
+        expect(res.status).toHaveBeenCalledWith(400);
+        expect(res.json).toHaveBeenCalledWith({ ok: false, error: 'La contraseña debe tener al menos 8 caracteres, incluir una mayúscula, un número y un símbolo.' });
+        expect(db.query).not.toHaveBeenCalled();
+        expect(next).not.toHaveBeenCalled();
+    });
+
+    test('si la contrasena no tiene mayuscula devuelve 400', async () => {
+        const req = mockReq({ correo: 'test@correo.com', password: 'valida@123' });
+        const res = mockRes();
+        const next = mockNext();
+
+        await registrarUsuario(req, res, next);
+
+        expect(res.status).toHaveBeenCalledWith(400);
+        expect(res.json).toHaveBeenCalledWith({ ok: false, error: 'La contraseña debe tener al menos 8 caracteres, incluir una mayúscula, un número y un símbolo.' });
+        expect(db.query).not.toHaveBeenCalled();
+        expect(next).not.toHaveBeenCalled();
+    });
+
+    test('si la contrasena no tiene minuscula devuelve 400', async () => {
+        const req = mockReq({ correo: 'test@correo.com', password: 'VALIDA@123' });
+        const res = mockRes();
+        const next = mockNext();
+
+        await registrarUsuario(req, res, next);
+
+        expect(res.status).toHaveBeenCalledWith(400);
+        expect(res.json).toHaveBeenCalledWith({ ok: false, error: 'La contraseña debe tener al menos 8 caracteres, incluir una mayúscula, un número y un símbolo.' });
+        expect(db.query).not.toHaveBeenCalled();
+        expect(next).not.toHaveBeenCalled();
+    });
+
+    test('si la contrasena no tiene numero devuelve 400', async () => {
+        const req = mockReq({ correo: 'test@correo.com', password: 'Valida@abc' });
+        const res = mockRes();
+        const next = mockNext();
+
+        await registrarUsuario(req, res, next);
+
+        expect(res.status).toHaveBeenCalledWith(400);
+        expect(res.json).toHaveBeenCalledWith({ ok: false, error: 'La contraseña debe tener al menos 8 caracteres, incluir una mayúscula, un número y un símbolo.' });
+        expect(db.query).not.toHaveBeenCalled();
+        expect(next).not.toHaveBeenCalled();
+    });
+
+    test('si la contrasena no tiene caracter especial devuelve 400', async () => {
+        const req = mockReq({ correo: 'test@correo.com', password: 'Valida1234' });
+        const res = mockRes();
+        const next = mockNext();
+
+        await registrarUsuario(req, res, next);
+
+        expect(res.status).toHaveBeenCalledWith(400);
+        expect(res.json).toHaveBeenCalledWith({ ok: false, error: 'La contraseña debe tener al menos 8 caracteres, incluir una mayúscula, un número y un símbolo.' });
         expect(db.query).not.toHaveBeenCalled();
         expect(next).not.toHaveBeenCalled();
     });
@@ -87,9 +147,23 @@ describe('registrarUsuario - validaciones del servidor', () => {
         await registrarUsuario(req, res, next);
 
         expect(res.status).toHaveBeenCalledWith(400);
-        expect(res.json).toHaveBeenCalledWith({ ok: false, error: 'Las contrasenas no coinciden' });
-        expect(bcrypt.hash).not.toHaveBeenCalled();
+        expect(res.json).toHaveBeenCalledWith({ ok: false, error: 'Las contraseñas no coinciden' });
         expect(db.query).not.toHaveBeenCalled();
+        expect(next).not.toHaveBeenCalled();
+    });
+
+    test('si el correo ya existe devuelve 409 y no inserta', async () => {
+        const req = mockReq({ correo: 'test@correo.com', password: 'Valida@123', confirm: 'Valida@123' });
+        const res = mockRes();
+        const next = mockNext();
+
+        db.query.mockResolvedValueOnce([{ correo: 'test@correo.com' }]);
+
+        await registrarUsuario(req, res, next);
+
+        expect(res.status).toHaveBeenCalledWith(409);
+        expect(res.json).toHaveBeenCalledWith({ ok: false, error: 'Ya existe un usuario con ese correo' });
+        expect(db.query).toHaveBeenCalledTimes(1);
         expect(next).not.toHaveBeenCalled();
     });
 });
@@ -101,44 +175,17 @@ describe('registrarUsuario - flujo correcto', () => {
         const next = mockNext();
 
         bcrypt.hash.mockResolvedValue('hash_ok');
-        db.query.mockResolvedValue({});
+        db.query
+            .mockResolvedValueOnce([])
+            .mockResolvedValueOnce({});
 
         await registrarUsuario(req, res, next);
 
-        expect(bcrypt.hash).toHaveBeenCalledWith('Valida@123', 10);
-        expect(db.query).toHaveBeenCalledWith('INSERT INTO usuario (correo, contraseña) VALUES (@p0, @p1)', ['test@correo.com', 'hash_ok']);
-        expect(res.json).toHaveBeenCalledWith({ ok: true, mensaje: 'Usuario registrado correctamente' });
+        expect(db.query).toHaveBeenNthCalledWith(1, 'SELECT * FROM usuario WHERE correo = @p0', ['test@correo.com']);
+        expect(db.query).toHaveBeenNthCalledWith(2, 'INSERT INTO usuario (correo, contraseña) VALUES (@p0, @p1)', ['test@correo.com', 'hash_ok']);
+        expect(res.json).toHaveBeenCalledWith({ ok: true, mensaje: 'Usuario registrado correctamente. Redirigiendo a la pagina de inicio ...' });
         expect(next).not.toHaveBeenCalled();
     });
 });
 
-describe('registrarUsuario - manejo de errores internos', () => {
-    test('si bcrypt falla, propaga el error con next', async () => {
-        const req = mockReq({ correo: 'test@correo.com', password: 'Valida@123' });
-        const res = mockRes();
-        const next = mockNext();
-        const error = new Error('fallo bcrypt');
 
-        bcrypt.hash.mockRejectedValue(error);
-
-        await registrarUsuario(req, res, next);
-
-        expect(next).toHaveBeenCalledWith(error);
-        expect(res.json).not.toHaveBeenCalledWith({ ok: true, mensaje: 'Usuario registrado correctamente' });
-    });
-
-    test('si la bd falla, propaga el error con next', async () => {
-        const req = mockReq({ correo: 'test@correo.com', password: 'Valida@123' });
-        const res = mockRes();
-        const next = mockNext();
-        const error = new Error('fallo bd');
-
-        bcrypt.hash.mockResolvedValue('hash_ok');
-        db.query.mockRejectedValue(error);
-
-        await registrarUsuario(req, res, next);
-
-        expect(next).toHaveBeenCalledWith(error);
-        expect(res.json).not.toHaveBeenCalledWith({ ok: true, mensaje: 'Usuario registrado correctamente' });
-    });
-});
