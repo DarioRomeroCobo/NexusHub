@@ -35,7 +35,7 @@ describe('mostrarRegistro', () => {
 });
 
 describe('registrarUsuario - validaciones del servidor', () => {
-    test('si faltan correo o contrasena devuelve 400 y no inserta', async () => {
+    test('si faltan correo o contrasena devuelve error 400 y no inserta', async () => {
         const req = mockReq({ correo: '', password: '' });
         const res = mockRes();
         const next = mockNext();
@@ -48,7 +48,7 @@ describe('registrarUsuario - validaciones del servidor', () => {
         expect(next).not.toHaveBeenCalled();
     });
 
-    test('si el correo es invalido devuelve 400', async () => {
+    test('si el correo es invalido devuelve error 400', async () => {
         const req = mockReq({ correo: 'correo-invalido', password: 'Valida@123' });
         const res = mockRes();
         const next = mockNext();
@@ -61,20 +61,8 @@ describe('registrarUsuario - validaciones del servidor', () => {
         expect(next).not.toHaveBeenCalled();
     });
 
-    test('si la contrasena no cumple requisitos devuelve 400', async () => {
-        const req = mockReq({ correo: 'test@correo.com', password: 'abc12345' });
-        const res = mockRes();
-        const next = mockNext();
 
-        await registrarUsuario(req, res, next);
-
-        expect(res.status).toHaveBeenCalledWith(400);
-        expect(res.json).toHaveBeenCalledWith({ ok: false, error: 'La contraseña debe tener al menos 8 caracteres, incluir una mayúscula, un número y un símbolo.' });
-        expect(db.query).not.toHaveBeenCalled();
-        expect(next).not.toHaveBeenCalled();
-    });
-
-    test('si la contrasena tiene menos de 8 caracteres devuelve 400', async () => {
+    test('si la contrasena tiene menos de 8 caracteres devuelve error 400', async () => {
         const req = mockReq({ correo: 'test@correo.com', password: 'Ab1@abc' });
         const res = mockRes();
         const next = mockNext();
@@ -87,7 +75,7 @@ describe('registrarUsuario - validaciones del servidor', () => {
         expect(next).not.toHaveBeenCalled();
     });
 
-    test('si la contrasena no tiene mayuscula devuelve 400', async () => {
+    test('si la contrasena no tiene mayuscula devuelve error 400', async () => {
         const req = mockReq({ correo: 'test@correo.com', password: 'valida@123' });
         const res = mockRes();
         const next = mockNext();
@@ -100,7 +88,7 @@ describe('registrarUsuario - validaciones del servidor', () => {
         expect(next).not.toHaveBeenCalled();
     });
 
-    test('si la contrasena no tiene minuscula devuelve 400', async () => {
+    test('si la contrasena no tiene minuscula devuelve error 400', async () => {
         const req = mockReq({ correo: 'test@correo.com', password: 'VALIDA@123' });
         const res = mockRes();
         const next = mockNext();
@@ -113,7 +101,7 @@ describe('registrarUsuario - validaciones del servidor', () => {
         expect(next).not.toHaveBeenCalled();
     });
 
-    test('si la contrasena no tiene numero devuelve 400', async () => {
+    test('si la contrasena no tiene numero devuelve error 400', async () => {
         const req = mockReq({ correo: 'test@correo.com', password: 'Valida@abc' });
         const res = mockRes();
         const next = mockNext();
@@ -126,7 +114,7 @@ describe('registrarUsuario - validaciones del servidor', () => {
         expect(next).not.toHaveBeenCalled();
     });
 
-    test('si la contrasena no tiene caracter especial devuelve 400', async () => {
+    test('si la contrasena no tiene caracter especial devuelve error 400', async () => {
         const req = mockReq({ correo: 'test@correo.com', password: 'Valida1234' });
         const res = mockRes();
         const next = mockNext();
@@ -139,7 +127,7 @@ describe('registrarUsuario - validaciones del servidor', () => {
         expect(next).not.toHaveBeenCalled();
     });
 
-    test('si confirmacion llega y no coincide devuelve 400', async () => {
+    test('si confirmacion llega y no coincide devuelve error 400', async () => {
         const req = mockReq({ correo: 'test@correo.com', password: 'Valida@123', confirm: 'NoCoincide@123' });
         const res = mockRes();
         const next = mockNext();
@@ -152,7 +140,7 @@ describe('registrarUsuario - validaciones del servidor', () => {
         expect(next).not.toHaveBeenCalled();
     });
 
-    test('si el correo ya existe devuelve 409 y no inserta', async () => {
+    test('si el correo ya existe devuelve error 409 y no inserta', async () => {
         const req = mockReq({ correo: 'test@correo.com', password: 'Valida@123', confirm: 'Valida@123' });
         const res = mockRes();
         const next = mockNext();

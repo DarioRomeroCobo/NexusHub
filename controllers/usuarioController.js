@@ -56,10 +56,7 @@ const registrarUsuario = async (req, res, next) => {
         }
         
         const usuarioExistente = await db.query('SELECT * FROM usuario WHERE correo = @p0', [correoNormalizado]);
-        
-        console.log("Correo a registrar:", correoNormalizado);
-        console.log("Resultado de la búsqueda:", usuarioExistente);
-
+    
         const filas = usuarioExistente.recordset || usuarioExistente; 
         if (filas.length > 0) {
             return res.status(409).json({ ok: false, error: "Ya existe un usuario con ese correo" });
