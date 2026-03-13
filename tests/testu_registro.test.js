@@ -1,148 +1,144 @@
-const bycrypt = require('bcrypt');
-
-jest.mock('../utils/middleware-db.js', () => ({ //mockeamos la llamda a la base de datos
+jest.mock('../utils/middleware-bd', () => ({
     query: jest.fn()
 }));
 
-jestlmock('bycrypt', () => ({ //mockeamos la función de encriptación
+jest.mock('bcrypt', () => ({
     hash: jest.fn()
 }));
 
-const db = require('../utils/middleware-db.js');
-
+const bcrypt = require('bcrypt');
+const db = require('../utils/middleware-bd');
 const { mostrarRegistro, registrarUsuario } = require('../controllers/usuarioController');
 
 const mockRes = () => {
     const res = {};
     res.status = jest.fn().mockReturnValue(res);
     res.json = jest.fn().mockReturnValue(res);
-    res.status = jest.fn().mockReturnValue(res);
+    res.render = jest.fn().mockReturnValue(res);
     return res;
-}
+};
 
-const mockReq = (body = {}) => ({body}) ;
+const mockReq = (body = {}) => ({ body });
+const mockNext = () => jest.fn();
 
 beforeEach(() => {
     jest.clearAllMocks();
 });
 
-
-//Test 1: Mostrar el formulario de registro
-
 describe('mostrarRegistro', () => {
     test('renderiza el formulario de registro', () => {
         const req = mockReq();
         const res = mockRes();
+
         mostrarRegistro(req, res);
+
         expect(res.render).toHaveBeenCalledWith('registro');
     });
 });
 
-//Test 2: Validacion de campos
-
-describe('validacion de campos en registrarUsuario', () => {
-    test('con datos validos', async () => {
-        const req = mockReq({ correo: 'test@correo.com', contraseña : 'Segura@123' });
+describe('registrarUsuario - validaciones del servidor', () => {
+    test('si faltan correo o contrasena devuelve 400 y no inserta', async () => {
+        const req = mockReq({ correo: '', password: '' });
         const res = mockRes();
         const next = mockNext();
 
-        bycrypt.hash.mockResolvedValue('hashedPassword');
+        await registrarUsuario(req, res, next);
+
+        expect(res.status).toHaveBeenCalledWith(400);
+        expect(res.json).toHaveBeenCalledWith({ ok: false, error: 'Correo y contrasena son obligatorios' });
+        expect(bcrypt.hash).not.toHaveBeenCalled();
+        expect(db.query).not.toHaveBeenCalled();
+        expect(next).not.toHaveBeenCalled();
+    });
+
+    test('si el correo es invalido devuelve 400', async () => {
+        const req = mockReq({ correo: 'correo-invalido', password: 'Valida@123' });
+        const res = mockRes();
+        const next = mockNext();
+
+        await registrarUsuario(req, res, next);
+
+        expect(res.status).toHaveBeenCalledWith(400);
+        expect(res.json).toHaveBeenCalledWith({ ok: false, error: 'Correo electronico no valido' });
+        expect(bcrypt.hash).not.toHaveBeenCalled();
+        expect(db.query).not.toHaveBeenCalled();
+        expect(next).not.toHaveBeenCalled();
+    });
+
+    test('si la contrasena no cumple requisitos devuelve 400', async () => {
+        const req = mockReq({ correo: 'test@correo.com', password: 'abc12345' });
+        const res = mockRes();
+        const next = mockNext();
+
+        await registrarUsuario(req, res, next);
+
+        expect(res.status).toHaveBeenCalledWith(400);
+        expect(res.json).toHaveBeenCalledWith({ ok: false, error: 'La contrasena no cumple los requisitos de seguridad' });
+        expect(bcrypt.hash).not.toHaveBeenCalled();
+        expect(db.query).not.toHaveBeenCalled();
+        expect(next).not.toHaveBeenCalled();
+    });
+
+    test('si confirmacion llega y no coincide devuelve 400', async () => {
+        const req = mockReq({ correo: 'test@correo.com', password: 'Valida@123', confirm: 'NoCoincide@123' });
+        const res = mockRes();
+        const next = mockNext();
+
+        await registrarUsuario(req, res, next);
+
+        expect(res.status).toHaveBeenCalledWith(400);
+        expect(res.json).toHaveBeenCalledWith({ ok: false, error: 'Las contrasenas no coinciden' });
+        expect(bcrypt.hash).not.toHaveBeenCalled();
+        expect(db.query).not.toHaveBeenCalled();
+        expect(next).not.toHaveBeenCalled();
+    });
+});
+
+describe('registrarUsuario - flujo correcto', () => {
+    test('hashea e inserta cuando los datos son validos', async () => {
+        const req = mockReq({ correo: '  test@correo.com  ', password: 'Valida@123', confirm: 'Valida@123' });
+        const res = mockRes();
+        const next = mockNext();
+
+        bcrypt.hash.mockResolvedValue('hash_ok');
         db.query.mockResolvedValue({});
 
         await registrarUsuario(req, res, next);
 
-        expect(res.json).toHaveBeenCalledWith({ message: 'Usuario registrado exitosamente' });
+        expect(bcrypt.hash).toHaveBeenCalledWith('Valida@123', 10);
+        expect(db.query).toHaveBeenCalledWith('INSERT INTO usuario (correo, contraseña) VALUES (@p0, @p1)', ['test@correo.com', 'hash_ok']);
+        expect(res.json).toHaveBeenCalledWith({ ok: true, mensaje: 'Usuario registrado correctamente' });
         expect(next).not.toHaveBeenCalled();
     });
+});
 
-    test('si bcrypt falla por contraseña inválida, propaga el error', async () => {
-        const req  = mockReq({ correo: 'test@correo.com', password: undefined });
-        const res  = mockRes();
+describe('registrarUsuario - manejo de errores internos', () => {
+    test('si bcrypt falla, propaga el error con next', async () => {
+        const req = mockReq({ correo: 'test@correo.com', password: 'Valida@123' });
+        const res = mockRes();
         const next = mockNext();
- 
-        const error = new Error('data and salt arguments required');
+        const error = new Error('fallo bcrypt');
+
         bcrypt.hash.mockRejectedValue(error);
- 
-        await registrarUsuario(req, res, next);
- 
-        expect(next).toHaveBeenCalledWith(error);
-        expect(res.json).not.toHaveBeenCalled();
-    });
- 
-    test('la contraseña se hashea antes de guardar, nunca en texto plano', async () => {
-        const req  = mockReq({ correo: 'test@correo.com', password: 'Segura@123' });
-        const res  = mockRes();
-        const next = mockNext();
- 
-        bcrypt.hash.mockResolvedValue('$2b$10$hashEjemplo');
-        db.query.mockResolvedValue({});
- 
-        await registrarUsuario(req, res, next);
- 
-        expect(bcrypt.hash).toHaveBeenCalledWith('Segura@123', 10);
-    });
-});
 
-//Test 3: Respuesta exitosa
- 
-describe('registrarUsuario - respuesta exitosa', () => {
-    test('responde { ok: true } al registrar correctamente', async () => {
-        const req  = mockReq({ correo: 'nuevo@correo.com', password: 'Valid@Pass1' });
-        const res  = mockRes();
-        const next = mockNext();
- 
-        bcrypt.hash.mockResolvedValue('hash_ok');
-        db.query.mockResolvedValue({});
- 
         await registrarUsuario(req, res, next);
- 
-        expect(res.json).toHaveBeenCalledWith({ ok: true });
+
+        expect(next).toHaveBeenCalledWith(error);
+        expect(res.json).not.toHaveBeenCalledWith({ ok: true, mensaje: 'Usuario registrado correctamente' });
     });
- 
-    test('no llama a next() si el registro es exitoso', async () => {
-        const req  = mockReq({ correo: 'ok@correo.com', password: 'Strong@1' });
-        const res  = mockRes();
+
+    test('si la bd falla, propaga el error con next', async () => {
+        const req = mockReq({ correo: 'test@correo.com', password: 'Valida@123' });
+        const res = mockRes();
         const next = mockNext();
- 
+        const error = new Error('fallo bd');
+
         bcrypt.hash.mockResolvedValue('hash_ok');
-        db.query.mockResolvedValue({});
- 
+        db.query.mockRejectedValue(error);
+
         await registrarUsuario(req, res, next);
- 
-        expect(next).not.toHaveBeenCalled();
+
+        expect(next).toHaveBeenCalledWith(error);
+        expect(res.json).not.toHaveBeenCalledWith({ ok: true, mensaje: 'Usuario registrado correctamente' });
     });
 });
- 
-//Test 4: Mensajes de error
- 
-describe('registrarUsuario - manejo de errores', () => {
-    test('propaga el error original sin modificarlo', async () => {
-        const req  = mockReq({ correo: 'x@x.com', password: 'Pass@1' });
-        const res  = mockRes();
-        const next = mockNext();
- 
-        bcrypt.hash.mockResolvedValue('hash');
-        const errorOriginal = new Error('Error inesperado');
-        db.query.mockRejectedValue(errorOriginal);
- 
-        await registrarUsuario(req, res, next);
- 
-        expect(next).toHaveBeenCalledWith(errorOriginal);
-        expect(next.mock.calls[0][0].message).toBe('Error inesperado');
-    });
- 
-    test('no envía respuesta al usuario si ocurre un error', async () => {
-        const req  = mockReq({ correo: 'x@x.com', password: 'Pass@1' });
-        const res  = mockRes();
-        const next = mockNext();
- 
-        bcrypt.hash.mockResolvedValue('hash');
-        db.query.mockRejectedValue(new Error('fallo'));
- 
-        await registrarUsuario(req, res, next);
- 
-        expect(res.json).not.toHaveBeenCalled();
-        expect(res.render).not.toHaveBeenCalled();
-    });
-});
- 
