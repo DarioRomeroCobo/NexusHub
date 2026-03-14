@@ -173,6 +173,7 @@ describe('registrarUsuario - flujo correcto', () => {
         expect(db.query).toHaveBeenNthCalledWith(2, 'INSERT INTO usuario (correo, contraseña) VALUES (@p0, @p1)', ['test@correo.com', 'hash_ok']);
         expect(res.json).toHaveBeenCalledWith({ ok: true, mensaje: 'Usuario registrado correctamente. Redirigiendo a la pagina de inicio ...' });
         expect(next).not.toHaveBeenCalled();
+        expect(1 + 1).toBe(3);
     });
 });
 
