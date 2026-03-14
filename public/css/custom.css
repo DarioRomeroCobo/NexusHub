@@ -60,3 +60,34 @@ input:focus {
 .btn-gradient:active {
     transform: translateY(1px);
 }
+
+.usuarios-page {
+    background: radial-gradient(circle at 5% 15%, #e6f0ff 0%, transparent 42%),
+                radial-gradient(circle at 92% 80%, #d8e8ff 0%, transparent 40%),
+                #f8fbff;
+}
+
+.usuarios-hero {
+    background: linear-gradient(120deg, #0d1b2a, #1e3a5f, #2f6fd7);
+}
+
+.usuarios-table thead th {
+    background-color: #f3f8ff;
+    color: #1b2a45;
+    font-weight: 700;
+    border-bottom: 0;
+}
+
+.avatar-mini {
+    width: 32px;
+    height: 32px;
+    border-radius: 999px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #0d6efd, #3a8dde);
+    color: #fff;
+    font-size: 0.85rem;
+    font-weight: 700;
+}
+

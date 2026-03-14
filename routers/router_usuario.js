@@ -5,7 +5,7 @@ const {mostrarRegistro, getUsuarios, registrarUsuario  } = require('../controlle
 
 // GET - muestra el formulario
 router.get("/registro", mostrarRegistro);
-router.get("/api/", getUsuarios);
+router.get("/ver-usuarios", getUsuarios);
 router.post("/api/", registrarUsuario);
 
 module.exports = router;

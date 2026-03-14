@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="es">
+<%- include("fragments/head") %>
+
+<body class="d-flex flex-column min-vh-100 bg-light">
+	<%- include("fragments/header") %>
+	<%- include("fragments/navbar") %>
+
+	<main class="flex-grow-1 usuarios-page py-5">
+		<div class="container">
+			<section class="usuarios-hero rounded-4 p-4 p-md-5 mb-4 shadow-sm">
+				<div class="d-flex flex-column flex-md-row justify-content-between gap-3 align-items-md-center">
+					<div>
+						<span class="badge bg-white text-primary fw-semibold mb-2">Panel de usuarios</span>
+						<h1 class="h3 mb-2 text-white fw-bold">Usuarios registrados</h1>
+						<p class="mb-0 text-white-50">Listado actualizado desde la consulta del controlador.</p>
+					</div>
+
+					<div class="usuarios-kpi text-center text-md-end">
+						<p class="mb-1 text-white-50">Total</p>
+						<p class="display-6 fw-bold text-white mb-0"><%= totalUsuarios %></p>
+					</div>
+				</div>
+			</section>
+
+			<% if (!usuarios || usuarios.length === 0) { %>
+				<section class="card border-0 shadow-sm rounded-4 p-4 p-md-5 text-center bg-white">
+					<h2 class="h5 fw-bold mb-2">Aun no hay usuarios</h2>
+					<p class="text-muted mb-4">Cuando se registren, apareceran aqui automaticamente.</p>
+					<a href="/usuario/registro" class="btn btn-gradient rounded-pill px-4 fw-semibold">Crear primer usuario</a>
+				</section>
+			<% } else { %>
+				<section class="card border-0 shadow-sm rounded-4 overflow-hidden">
+					<div class="table-responsive">
+						<table class="table table-hover align-middle mb-0 usuarios-table">
+							<thead>
+								<tr>
+									<th>#</th>
+									<th>Correo</th>
+									<th>ID</th>
+									<th>Rol</th>
+								</tr>
+							</thead>
+							<tbody>
+								<% usuarios.forEach((usuario) => { %>
+									<tr>
+										<td class="fw-semibold"><%= usuario.numero %></td>
+										<td>
+											<div class="d-flex align-items-center gap-2">
+												<span class="avatar-mini"><%= (usuario.correo || "U").charAt(0).toUpperCase() %></span>
+												<span><%= usuario.correo %></span>
+											</div>
+										</td>
+										<td><span class="badge text-bg-light border"><%= usuario.id || "-" %></span></td>
+										<td><span class="badge rounded-pill text-bg-primary"><%= usuario.rol %></span></td>
+									</tr>
+								<% }) %>
+							</tbody>
+						</table>
+					</div>
+				</section>
+			<% } %>
+		</div>
+	</main>
+
+	<%- include("fragments/footer") %>
+</body>
+
+</html>
