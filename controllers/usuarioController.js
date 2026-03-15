@@ -13,7 +13,6 @@ const getUsuarios = async (req, res, next) => {
             numero: index + 1,
             id: usuario.id || usuario.id_usuario || null,
             correo: usuario.correo || usuario.email || "Sin correo",
-            rol: usuario.rol || "usuario"
         }));
 
         if (req.query.formato === "json") {

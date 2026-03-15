@@ -3,90 +3,88 @@
 <!--head-->
 <%- include("fragments/head") %>
 
-    <body class="d-flex flex-column min-vh-100 bg-light">
+<body class="d-flex flex-column min-vh-100 bg-light">
 
-        <%- include("fragments/header") %>
-            <%- include("fragments/navbar") %>
+    <%- include("fragments/header") %>
+    <%- include("fragments/navbar") %>
 
-                <main class="flex-grow-1 d-flex align-items-center justify-content-center py-5"
-                    style="background: linear-gradient(135deg, #0d1b2a, #1b2a45);">
-                    <div class="container" style="max-width: 460px;">
+    <main class="flex-grow-1 d-flex align-items-center justify-content-center py-5 registro-main-bg">
+        <div class="container registro-container">
 
-                        <div class="card shadow-lg border-0 rounded-4"
-                            style="background-color: rgba(255,255,255,0.95);">
-                            <div class="card-body p-4 p-md-5">
-                                <section id="registro">
-                                    <h1 class="h4 text-center mb-4 fw-bold" style="color:#0d1b2a;">Crear cuenta</h1>
+            <div class="card shadow-lg border-0 rounded-4 registro-card">
+                <div class="card-body p-4 p-md-5">
+                    <section id="registro">
+                        <h1 class="h4 text-center mb-4 fw-bold registro-title">Crear cuenta</h1>
 
-                                    <form id="formulario-registro" class="needs-validation" novalidate>
-                                        <div id="registro-feedback" class="d-none alert text-center fw-semibold mb-3"
-                                            role="alert">
-                                            <p class="mb-0"></p>
-                                        </div>
+                        <form id="formulario-registro" class="needs-validation" novalidate>
 
-                                        <div class="mb-3">
-                                            <label for="correo" class="form-label fw-semibold">Correo
-                                                electrónico</label>
-                                            <input type="email" class="form-control form-control-lg border-primary"
-                                                id="correo" name="correo" placeholder="ejemplo@correo.com"
-                                                autocomplete="email"
-                                                style="box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);"
-                                                aria-describedby="ayuda-correo" pattern="^([\w\d.]+@+[\w]+.+[\w])$"
-                                                required>
-                                            <div class="invalid-feedback">
-                                                Correo electrónico no válido.
-                                            </div>
-
-                                            <div class="mb-4">
-                                                <label for="password" class="form-label fw-semibold">Contraseña</label>
-                                                <input type="password"
-                                                    class="form-control form-control-lg border-primary" id="password"
-                                                    name="password" placeholder="******" minlength="8"
-                                                    autocomplete="new-password"
-                                                    style="box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);"
-                                                    aria-describedby="ayuda-contrasena"
-                                                    pattern="^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&._-])[A-Za-z\d@$!%*?&._-]{8,}$"
-                                                    required>
-                                                <div class="invalid-feedback">
-                                                    La contraseña debe tener mínimo 8 caracteres, una mayúscula,
-                                                    una
-                                                    minúscula, un número y un carácter especial.
-                                                </div>
-
-                                            </div>
-
-                                            <div class="mb-4">
-                                                <label for="confirmPassword" class="form-label fw-semibold">Confirmar
-                                                    contraseña</label>
-                                                <input type="password"
-                                                    class="form-control form-control-lg border-primary"
-                                                    id="confirmPassword" name="confirm" placeholder="******"
-                                                    style="box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);"
-                                                    aria-describedby="ayuda-confirmar" required>
-                                                <div class="invalid-feedback">
-                                                    Las contraseñas no coinciden
-                                                </div>
-                                            </div>
-
-                                            <button type="submit"
-                                                class="btn btn-gradient w-100 btn-lg rounded-pill fw-bold">
-                                                Registrarme
-                                            </button>
-
-                                    </form>
-                                </section>
+                            <div id="registro-feedback" class="d-none alert text-center fw-semibold mb-3"
+                                role="alert">
+                                <p class="mb-0"></p>
                             </div>
-                        </div>
 
-                    </div>
-                </main>
+                            <div class="mb-3">
+                                <label for="correo" class="form-label fw-semibold">Correo electrónico</label>
+                                <input type="email" class="form-control form-control-lg border-primary registro-input-shadow"
+                                    id="correo" name="correo" placeholder="ejemplo@correo.com"
+                                    autocomplete="email"
+                                    aria-describedby="ayuda-correo"
+                                    pattern="^([\w\d.]+@+[\w]+.+[\w])$"
+                                    required>
+                                <div class="invalid-feedback">
+                                    Correo electrónico no válido.
+                                </div>
+                            </div>
 
-                <%- include("fragments/footer") %>
+                            <div class="mb-4">
+                                <label for="password" class="form-label fw-semibold">Contraseña</label>
+                                <input type="password"
+                                    class="form-control form-control-lg border-primary registro-input-shadow"
+                                    id="password"
+                                    name="password"
+                                    placeholder="******"
+                                    minlength="8"
+                                    autocomplete="new-password"
+                                    aria-describedby="ayuda-contrasena"
+                                    pattern="^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&._-])[A-Za-z\d@$!%*?&._-]{8,}$"
+                                    required>
+                                <div class="invalid-feedback">
+                                    La contraseña debe tener mínimo 8 caracteres, una mayúscula,
+                                    una minúscula, un número y un carácter especial.
+                                </div>
+                            </div>
 
-                    <!--<script src="/js/validar-formulario" type="module"></script> -->
-                    <script src="/js/scripts-usuario.js"></script> 
+                            <div class="mb-4">
+                                <label for="confirmPassword" class="form-label fw-semibold">Confirmar contraseña</label>
+                                <input type="password"
+                                    class="form-control form-control-lg border-primary registro-input-shadow"
+                                    id="confirmPassword"
+                                    name="confirm"
+                                    placeholder="******"
+                                    aria-describedby="ayuda-confirmar"
+                                    required>
+                                <div class="invalid-feedback">
+                                    Las contraseñas no coinciden
+                                </div>
+                            </div>
 
+                            <button type="submit"
+                                class="btn btn-gradient w-100 btn-lg rounded-pill fw-bold">
+                                Registrarme
+                            </button>
 
-    </body>
+                        </form>
+                    </section>
+                </div>
+            </div>
 
+        </div>
+    </main>
+
+    <%- include("fragments/footer") %>
+
+    <!--<script src="/js/validar-formulario" type="module"></script> -->
+    <script src="/js/scripts-usuario.js"></script>
+
+</body>
 </html>

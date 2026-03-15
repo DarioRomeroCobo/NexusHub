@@ -1,4 +1,6 @@
-/* Botón con degradado azul*/
+/* ESTILOS GLOBALES */
+
+/* Boton principal con degradado azul */
 .btn-gradient {
     background: linear-gradient(90deg, #0d6efd, #3a8dde);
     color: #fff;
@@ -10,13 +12,17 @@
     box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
 }
 
-/* Inputs con borde azul y foco */
+.btn-gradient:active {
+    transform: translateY(1px);
+}
+
+/* Inputs con borde azul al enfocar */
 input:focus {
     border-color: #0d6efd !important;
     box-shadow: 0 0 8px rgba(13, 110, 253, 0.3);
 }
 
-/* Card con suavizado de sombras */
+/* Cards con animacion suave */
 .card {
     transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
@@ -26,7 +32,7 @@ input:focus {
     box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
 }
 
-/* Cards con hover sutil */
+/* Cards informativas en inicio */
 .hover-card {
     transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
@@ -36,7 +42,7 @@ input:focus {
     box-shadow: 0 12px 24px rgba(0, 0, 0, 0.1);
 }
 
-/* Degradado azul para la frase resumen */
+/* Utilidades de color */
 .bg-gradient-primary {
     background: linear-gradient(135deg, #0d6efd, #3a8dde);
 }
@@ -45,26 +51,48 @@ input:focus {
     color: #0d6efd;
 }
 
-.btn-gradient {
+/* VISTA DE INICIO */
+
+.inicio-hero {
+    background: linear-gradient(135deg, #0d1b2a, #1b2a45);
+}
+
+.inicio-badge-gradient {
     background: linear-gradient(90deg, #0d6efd, #3a8dde);
-    color: #fff;
-    transition: all 0.3s ease;
 }
 
-.btn-gradient:hover {
-    background: linear-gradient(90deg, #3a8dde, #0d6efd);
-    box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+.inicio-logo-img {
+    max-width: 380px;
 }
 
-/* Opcional: efecto de leve movimiento en hover */
-.btn-gradient:active {
-    transform: translateY(1px);
+/* VISTA DE REGISTRO */
+
+.registro-main-bg {
+    background: linear-gradient(135deg, #0d1b2a, #1b2a45);
 }
+
+.registro-container {
+    max-width: 460px;
+}
+
+.registro-card {
+    background-color: rgba(255, 255, 255, 0.95);
+}
+
+.registro-title {
+    color: #0d1b2a;
+}
+
+.registro-input-shadow {
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+/* VISTA DE USUARIOS */
 
 .usuarios-page {
     background: radial-gradient(circle at 5% 15%, #e6f0ff 0%, transparent 42%),
-                radial-gradient(circle at 92% 80%, #d8e8ff 0%, transparent 40%),
-                #f8fbff;
+        radial-gradient(circle at 92% 80%, #d8e8ff 0%, transparent 40%),
+        #f8fbff;
 }
 
 .usuarios-hero {
@@ -91,3 +119,10 @@ input:focus {
     font-weight: 700;
 }
 
+/* VISTA DE ERROR */
+
+.error-home-btn {
+    border: none;
+    border-radius: 50px;
+    padding: 0.5rem 1.5rem;
+}
