@@ -36,7 +36,7 @@ async function manejadorRegistro(e) {
     const pass = inputPassword.value;
     const tieneMayuscula = /[A-Z]/.test(pass);
     const tieneNumero = /\d/.test(pass);
-    const tieneSimbolo = /[@$!%*?&._-]/.test(pass);
+    const tieneSimbolo = /[@$!%*?&._-+#]/.test(pass);
     const tieneLongitud = pass.length >= 8;
 
     if (!tieneMayuscula || !tieneNumero || !tieneSimbolo || !tieneLongitud) {
