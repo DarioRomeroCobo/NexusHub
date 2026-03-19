@@ -37,11 +37,11 @@ app.use("/usuario", router_usuarios);
 
 //Renders básicos
 app.get("/", async function (req, res, next) {
-    res.render("inicio");
+    res.render("bienvenida");
 });
 
-app.get("/inicio", async function (req, res, next) {
-    res.render("inicio");
+app.get("/bienvenida", async function (req, res, next) {
+    res.render("bienvenida");
 })
 
 app.use((req, res, next) =>{
