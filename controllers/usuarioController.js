@@ -6,6 +6,10 @@ const mostrarRegistro = (req, res) => {
     res.render("registro");
 };
 
+const mostrarInicioSesion = (req, res) => {
+    res.render("inicio-sesion");
+};
+
 const getUsuarios = async (req, res, next) => {
     try {
         const usuariosRaw = await db.query("SELECT * FROM usuario", []);
@@ -81,4 +85,4 @@ const registrarUsuario = async (req, res, next) => {
     }
 };
 
-module.exports = { mostrarRegistro, getUsuarios, registrarUsuario };
+module.exports = { mostrarRegistro, getUsuarios, registrarUsuario, mostrarInicioSesion };
