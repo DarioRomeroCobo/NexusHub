@@ -85,4 +85,43 @@ const registrarUsuario = async (req, res, next) => {
     }
 };
 
-module.exports = { mostrarRegistro, getUsuarios, registrarUsuario, mostrarInicioSesion };
+
+const validarSesion = async (req, res, next) => {
+    try {
+        const { correo, password } = req.body;
+        const correoNormalizado = (correo || "").trim().toLowerCase();
+
+        if (!correoNormalizado || !password) {
+            return res.status(400).json({ ok: false, error: "Introduce correo y contraseña" });
+        }
+
+        const resultado = await db.query('SELECT * FROM usuario WHERE correo = @p0', [correoNormalizado]);
+        
+        const filas = resultado.recordset || resultado; 
+
+        if (filas.length === 0) {
+            return res.status(401).json({ ok: false, error: "Usuario o contraseña incorrectos" });
+        }
+
+        const usuario = filas[0];
+
+        const esValida = await bcrypt.compare(password, usuario.contraseña);
+
+        if (!esValida) {
+            return res.status(401).json({ ok: false, error: "Usuario o contraseña incorrectos" });
+        }
+
+        req.session.usuarioId = usuario.id_usuario; 
+        req.session.correo = usuario.correo;
+        req.session.isLoggedIn = true;
+
+        // Respondemos al cliente para que el JS de la vista haga el redireccionamiento
+        res.json({ ok: true, mensaje: "¡Bienvenido a NexusHub!" });
+
+    } catch (err) {
+        console.error("Error en el login:", err);
+        res.status(500).json({ ok: false, error: "Error interno del servidor" });
+    }
+};
+
+module.exports = { mostrarRegistro, getUsuarios, registrarUsuario, mostrarInicioSesion, validarSesion };
