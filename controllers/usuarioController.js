@@ -124,4 +124,15 @@ const validarSesion = async (req, res, next) => {
     }
 };
 
-module.exports = { mostrarRegistro, getUsuarios, registrarUsuario, mostrarInicioSesion, validarSesion };
+const logout = (req, res, next) => {
+    req.session.destroy((err) => {
+        if (err) {
+            console.error("Error al cerrar sesión:", err);
+            return res.redirect("/bienvenida");
+        }
+        res.clearCookie('connect.sid');
+        res.redirect("/bienvenida");
+    });
+};
+
+module.exports = { mostrarRegistro, getUsuarios, registrarUsuario, mostrarInicioSesion, validarSesion, logout };

@@ -84,7 +84,7 @@ async function manejadorRegistro(e) {
         registroFeedback.classList.add("alert-success");
 
         setTimeout(() => {
-            window.location.replace("/");
+            window.location.replace("/usuario/inicio-sesion");
         }, 3000);
 
     } catch (err) {

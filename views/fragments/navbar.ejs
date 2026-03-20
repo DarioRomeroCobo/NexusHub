@@ -1,6 +1,15 @@
 <nav class="navbar navbar-expand-md bg-white sticky-top shadow-sm py-1">
-    <div class="container-fluid">
-        <!-- ESTO ESTÁ VACÍO PARA METER LOS BOTONES EN LA PÁGINA DE INICIO -->
-    </div>
+    <% if (isLoggedIn) { %>
+        <div class="container-fluid">
+            <a class="navbar-brand fw-bold" href="/">NexusHub</a>
+            <div class="ms-auto d-flex align-items-center gap-3">
+                <span class="text-muted">
+                    ¡Bienvenido, <strong>
+                        <%= correo %>
+                    </strong>!
+                </span>
+                <a href="/usuario/logout" class="btn btn-sm btn-outline-danger">Logout</a>
+            </div>
+            <% } %>
+        </div>
 </nav>
-
