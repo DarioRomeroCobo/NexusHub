@@ -8,6 +8,7 @@ const multer = require("multer");
 const mysqlSession = require("express-mysql-session");
 const session = require("express-session");
 const pool = require("./connection.js");
+const { verificarAutenticacion } = require("./utils/middleware-auth");
 
 const app = express();
 
@@ -22,14 +23,16 @@ app.use(session({
     secret: "inicio_sesion_es_seguro",
     resave: false,
     saveUninitialized: false,
-    cookie: { 
-        secure: false, 
-        maxAge: 3600000 
+    cookie: {
+        secure: false,
+        maxAge: 3600000
     }
 }));
 
 app.use((req, res, next) => {
     res.locals.user = req.session.usuarioId || null;
+    res.locals.correo = req.session.correo || null;
+    res.locals.isLoggedIn = req.session.isLoggedIn || false;
     next();
 });
 
@@ -41,19 +44,28 @@ const sessionStore = new MySqlStore({
 }, pool);
 
 const router_usuarios = require("./routers/router_usuario.js");
+const { verificarNoAutenticado } = require("./utils/middleware-auth");
 
 app.use("/usuario", router_usuarios);
 
 //RENDER BASICOS
 app.get("/", async function (req, res, next) {
+    // Redirige según estado de autenticación
+    if (res.locals.isLoggedIn) {
+        return res.redirect("/inicio-usuario");
+    }
+    res.redirect("/bienvenida");
+});
+
+app.get("/bienvenida", verificarNoAutenticado, async function (req, res, next) {
     res.render("bienvenida");
 });
 
-app.get("/bienvenida", async function (req, res, next) {
-    res.render("bienvenida");
+app.get("/inicio-usuario", verificarAutenticacion, async function (req, res, next) {
+    res.render("inicio-usuario");
 });
 
-app.use((req, res, next) =>{
+app.use((req, res, next) => {
     res.status(404).render('error', {
         titulo: 'Pagina no encontrada',
         mensaje: 'La pagina solicitada no esta disponible',
@@ -61,7 +73,7 @@ app.use((req, res, next) =>{
     });
 });
 
-app.use((err, req, res, next) =>{
+app.use((err, req, res, next) => {
     console.error(err.stack);
     res.status(500).render('error', {
         titulo: 'Error interno del server',
