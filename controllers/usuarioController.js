@@ -16,6 +16,40 @@ const mostrarInicioSesion = (req, res) => {
     res.render("inicio-sesion");
 };
 
+const mostrarSubirVideo = async (req, res, next) => {
+    try {
+        const usuarioId = req.session.usuarioId;
+        const prefix = `videos/${usuarioId}/`;
+        const blobs = await azureBlob.listBlobs("videos", prefix);
+
+        const videos = blobs
+            .map((blob) => {
+                const partes = blob.name.split("/");
+                const nombreConTimestamp = partes[partes.length - 1] || blob.name;
+                const nombreVisible = nombreConTimestamp.replace(/^\d+-/, "");
+
+                return {
+                    nombre: nombreVisible,
+                    url: blob.url,
+                    pesoMB: (blob.size / (1024 * 1024)).toFixed(2),
+                    fecha: blob.lastModified
+                };
+            })
+            .sort((a, b) => {
+                const fechaA = a.fecha ? new Date(a.fecha).getTime() : 0;
+                const fechaB = b.fecha ? new Date(b.fecha).getTime() : 0;
+                return fechaB - fechaA;
+            });
+
+        res.render("subir-video", {
+            videos,
+            totalVideos: videos.length
+        });
+    } catch (err) {
+        next(err);
+    }
+};
+
 const getUsuarios = async (req, res, next) => {
     try {
         const usuariosRaw = await db.query("SELECT * FROM usuario", []);
@@ -130,13 +164,17 @@ const validarSesion = async (req, res, next) => {
 };
 const cargarVideo = async (req, res, next) => {
     try {
+        if (req.session.isLoggedIn !== true || !req.session.usuarioId) {
+            return res.status(401).json({ ok: false, error: "Debes iniciar sesión para subir videos" });
+        }
+
         // Valida que existe archivo y sino lanza error
         if (!req.file) {
             return res.status(400).json({ ok: false, error: "No se subió ningún archivo" });
         }
 
         // Validar tipo de formatos permitidos (mp4, mov)
-        const tiposPermitidos = ['video/mp4', 'video/mov'];
+        const tiposPermitidos = ['video/mp4', 'video/quicktime'];
         if (!tiposPermitidos.includes(req.file.mimetype)) {
             return res.status(400).json({ 
                 ok: false, 
@@ -154,8 +192,10 @@ const cargarVideo = async (req, res, next) => {
         }
 
         // Genera un nombre random para el blob
+        const usuarioId = req.session.usuarioId;
         const timestamp = Date.now();
-        const nombreBlob = `videos/${timestamp}-${req.file.originalname}`;
+        const nombreArchivoSeguro = req.file.originalname.replace(/[^a-zA-Z0-9._-]/g, "_");
+        const nombreBlob = `videos/${usuarioId}/${timestamp}-${nombreArchivoSeguro}`;
         
         // Subir a Azure
         const resultado = await azureBlob.uploadBlob('videos', nombreBlob, req.file.buffer);
@@ -189,4 +229,4 @@ const logout = (req, res, next) => {
     });
 };
 
-module.exports = { mostrarRegistro, getUsuarios, registrarUsuario, cargarVideo, mostrarInicioSesion, validarSesion, logout };
+module.exports = { mostrarRegistro, getUsuarios, registrarUsuario, cargarVideo, mostrarInicioSesion, mostrarSubirVideo, validarSesion, logout };

@@ -43,6 +43,27 @@ class AzureBlobStorage {
             throw new Error(`Error eliminando archivo: ${error.message}`);
         }
     }
+
+    async listBlobs(containerName, prefix = "") {
+        try {
+            const containerClient = this.blobServiceClient.getContainerClient(containerName);
+            const blobs = [];
+
+            for await (const blob of containerClient.listBlobsFlat({ prefix })) {
+                const blockBlobClient = containerClient.getBlockBlobClient(blob.name);
+                blobs.push({
+                    name: blob.name,
+                    url: blockBlobClient.url,
+                    size: blob.properties.contentLength || 0,
+                    lastModified: blob.properties.lastModified || null
+                });
+            }
+
+            return blobs;
+        } catch (error) {
+            throw new Error(`Error listando blobs: ${error.message}`);
+        }
+    }
 }
 
 module.exports = AzureBlobStorage;
