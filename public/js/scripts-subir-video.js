@@ -17,6 +17,8 @@ document.addEventListener("DOMContentLoaded", () => {
             return;
         }
 
+        const archivoVideo = inputVideo.files[0];
+
         feedback.classList.add("d-none");
         feedback.classList.remove("alert-danger", "alert-success");
 
@@ -25,6 +27,9 @@ document.addEventListener("DOMContentLoaded", () => {
         try {
             botonSubir.disabled = true;
             botonSubir.textContent = "Subiendo...";
+
+            const duracionSegundos = await obtenerDuracionSegundos(archivoVideo);
+            formData.set("duracion_segundos", String(duracionSegundos));
 
             const response = await fetch("/usuario/api/cargar-video", {
                 method: "POST",
@@ -55,3 +60,24 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     });
 });
+
+function obtenerDuracionSegundos(archivoVideo) {
+    return new Promise((resolve, reject) => {
+        const video = document.createElement("video");
+        const objectUrl = URL.createObjectURL(archivoVideo);
+
+        video.preload = "metadata";
+        video.src = objectUrl;
+
+        video.onloadedmetadata = () => {
+            const duracion = Math.max(0, Math.round(video.duration || 0));
+            URL.revokeObjectURL(objectUrl);
+            resolve(duracion);
+        };
+
+        video.onerror = () => {
+            URL.revokeObjectURL(objectUrl);
+            reject(new Error("No se pudo leer la duración del video"));
+        };
+    });
+}

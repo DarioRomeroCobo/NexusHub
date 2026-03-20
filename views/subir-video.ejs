@@ -41,25 +41,27 @@
                         <p class="mb-0">Pulsa en "Subir nuevo video" para cargar el primero.</p>
                     </div>
                 <% } else { %>
-                    <div class="row g-4">
-                        <% videos.forEach(function(video) { %>
-                            <article class="col-12 col-md-6 col-xl-4">
-                                <div class="card h-100 border-0 shadow-sm rounded-4 overflow-hidden">
-                                    <video class="w-100 video-preview" controls preload="metadata">
-                                        <source src="<%= video.url %>" type="video/mp4">
-                                        Tu navegador no soporta la reproducción de video.
-                                    </video>
-
-                                    <div class="card-body">
-                                        <h3 class="h6 fw-bold mb-2 text-truncate" title="<%= video.nombre %>"><%= video.nombre %></h3>
-                                        <p class="mb-1 text-muted small">Peso: <%= video.pesoMB %> MB</p>
-                                        <p class="mb-0 text-muted small">
-                                            Subido: <%= video.fecha ? new Date(video.fecha).toLocaleString('es-ES') : 'Fecha no disponible' %>
-                                        </p>
-                                    </div>
-                                </div>
-                            </article>
-                        <% }); %>
+                    <div class="table-responsive">
+                        <table class="table align-middle mb-0">
+                            <thead>
+                                <tr>
+                                    <th scope="col">Nombre del video</th>
+                                    <th scope="col">Tamaño</th>
+                                    <th scope="col">Duración</th>
+                                    <th scope="col">Hora de subida</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <% videos.forEach(function(video) { %>
+                                    <tr>
+                                        <td class="fw-semibold"><%= video.nombre %></td>
+                                        <td><%= video.pesoMB %> MB</td>
+                                        <td><%= video.duracionSegundos %> s</td>
+                                        <td><%= video.fecha ? new Date(video.fecha).toLocaleString('es-ES') : 'Fecha no disponible' %></td>
+                                    </tr>
+                                <% }); %>
+                            </tbody>
+                        </table>
                     </div>
                 <% } %>
             </section>

@@ -18,28 +18,22 @@ const mostrarInicioSesion = (req, res) => {
 
 const mostrarSubirVideo = async (req, res, next) => {
     try {
-        const usuarioId = req.session.usuarioId;
-        const prefix = `videos/${usuarioId}/`;
-        const blobs = await azureBlob.listBlobs("videos", prefix);
+        const correoUsuario = (req.session.correo || "").trim().toLowerCase();
+        const videosRaw = await db.query(
+            `SELECT correo_usuario, url_video, nombre_video, peso_bytes, duracion_segundos, fecha_subida
+             FROM VideosUsuario
+             WHERE correo_usuario = @p0
+             ORDER BY fecha_subida DESC`,
+            [correoUsuario]
+        );
 
-        const videos = blobs
-            .map((blob) => {
-                const partes = blob.name.split("/");
-                const nombreConTimestamp = partes[partes.length - 1] || blob.name;
-                const nombreVisible = nombreConTimestamp.replace(/^\d+-/, "");
-
-                return {
-                    nombre: nombreVisible,
-                    url: blob.url,
-                    pesoMB: (blob.size / (1024 * 1024)).toFixed(2),
-                    fecha: blob.lastModified
-                };
-            })
-            .sort((a, b) => {
-                const fechaA = a.fecha ? new Date(a.fecha).getTime() : 0;
-                const fechaB = b.fecha ? new Date(b.fecha).getTime() : 0;
-                return fechaB - fechaA;
-            });
+        const videos = (videosRaw || []).map((video) => ({
+            nombre: video.nombre_video,
+            pesoMB: (Number(video.peso_bytes || 0) / (1024 * 1024)).toFixed(2),
+            fecha: video.fecha_subida,
+            duracionSegundos: Number(video.duracion_segundos || 0),
+            url: video.url_video
+        }));
 
         res.render("subir-video", {
             videos,
@@ -168,9 +162,16 @@ const cargarVideo = async (req, res, next) => {
             return res.status(401).json({ ok: false, error: "Debes iniciar sesión para subir videos" });
         }
 
+        const correoUsuario = (req.session.correo || "").trim().toLowerCase();
+        const duracionSegundos = Number.parseInt(req.body.duracion_segundos, 10);
+
         // Valida que existe archivo y sino lanza error
         if (!req.file) {
             return res.status(400).json({ ok: false, error: "No se subió ningún archivo" });
+        }
+
+        if (!Number.isFinite(duracionSegundos) || duracionSegundos < 0) {
+            return res.status(400).json({ ok: false, error: "Duración de video no válida" });
         }
 
         // Validar tipo de formatos permitidos (mp4, mov)
@@ -202,6 +203,24 @@ const cargarVideo = async (req, res, next) => {
 
         if (resultado.success) {
             const urlVideo = azureBlob.getBlobUrl('videos', nombreBlob);
+
+            if (urlVideo.length > 255) {
+                await azureBlob.deleteBlob('videos', nombreBlob);
+                return res.status(400).json({ ok: false, error: "La URL del video supera el máximo permitido de 255 caracteres" });
+            }
+
+            await db.query(
+                `INSERT INTO VideosUsuario (correo_usuario, url_video, nombre_video, peso_bytes, duracion_segundos)
+                 VALUES (@p0, @p1, @p2, @p3, @p4)`,
+                [
+                    correoUsuario,
+                    urlVideo,
+                    req.file.originalname,
+                    req.file.size,
+                    duracionSegundos
+                ]
+            );
+
             return res.json({ 
                 ok: true, 
                 mensaje: "Video cargado correctamente",
