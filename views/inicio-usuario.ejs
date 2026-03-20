@@ -5,7 +5,8 @@
 <%- include("fragments/head") %>
 
 <body class="d-flex flex-column min-vh-100 bg-light">
-
+<%- include("fragments/header") %>
+    <%- include("fragments/navbar") %>
     <main class="flex-grow-1">
 
         <section class="py-5 border-bottom inicio-hero">
@@ -19,7 +20,7 @@
                         </span>
 
                         <h1 class="display-5 fw-bold mb-3 text-white">
-                            Bienvenido de nuevo a NexusHub
+                            Bienvenido de nuevo  <strong><%= correo %></strong>
                         </h1>
 
                         <p class="lead text-white mb-4">

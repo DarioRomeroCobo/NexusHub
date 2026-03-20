@@ -70,7 +70,7 @@ const registrarUsuario = async (req, res, next) => {
         const sql = 'INSERT INTO usuario (correo, contraseña) VALUES (@p0, @p1)';
         await db.query(sql, [correoNormalizado, passwordHash]);
 
-        res.json({ ok: true, mensaje: "Usuario registrado correctamente. Redirigiendo a la pagina de inicio ..." });
+        res.json({ ok: true, mensaje: "Usuario registrado correctamente. Redirigiendo a la pagina de inicio de sesión ..." });
 
     } catch(err) {
         console.error("Error al registrar el usuario:", err);
@@ -111,7 +111,7 @@ const validarSesion = async (req, res, next) => {
             return res.status(401).json({ ok: false, error: "Usuario o contraseña incorrectos" });
         }
 
-        req.session.usuarioId = usuario.id_usuario; 
+        req.session.usuarioId = usuario.id_usuario || usuario.id || null;
         req.session.correo = usuario.correo;
         req.session.isLoggedIn = true;
 

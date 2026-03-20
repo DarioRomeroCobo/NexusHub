@@ -1,6 +1,6 @@
 // Middleware para verificar si el usuario está autenticado
 const verificarAutenticacion = (req, res, next) => {
-    if (req.session.usuarioId && req.session.isLoggedIn) {
+    if (req.session.isLoggedIn === true) {
         return next();
     }
     res.redirect("/usuario/inicio-sesion");
@@ -8,7 +8,7 @@ const verificarAutenticacion = (req, res, next) => {
 
 // Middleware para verificar si el usuario NO está autenticado
 const verificarNoAutenticado = (req, res, next) => {
-    if (!req.session.usuarioId && !req.session.isLoggedIn) {
+    if (req.session.isLoggedIn !== true) {
         return next();
     }
     res.redirect("/inicio-usuario");

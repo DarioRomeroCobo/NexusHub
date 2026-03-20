@@ -85,7 +85,7 @@ async function manejadorRegistro(e) {
 
         setTimeout(() => {
             window.location.replace("/usuario/inicio-sesion");
-        }, 3000);
+        }, 2000);
 
     } catch (err) {
         console.error("Error registro:", err);
