@@ -1,7 +1,13 @@
 const bcrypt = require('bcrypt');
 const validator = require('validator'); 
 const db = require("../utils/middleware-bd");
-
+const AzureBlobStorage = require('../utils/azure-blob');
+const multer = require('multer');
+const upload = multer({ storage: multer.memoryStorage() });
+//Conexion con el recurso de Azure Blob Storage
+const CONNECTION_STRING = "DefaultEndpointsProtocol=https;AccountName=almacenamientonexushub;AccountKey=9JbBzi0ph16RzsPC7X3zRTJij0aCadWGY+H/a17Rcy3zGzqZvncqL9GUTv9jhpJ+UqBIaJF4n2XT+AStllDGeg==;EndpointSuffix=core.windows.net";
+//Crea la instacia
+const azureBlob = new AzureBlobStorage(CONNECTION_STRING);
 const mostrarRegistro = (req, res) => {
     res.render("registro");
 };
@@ -81,4 +87,55 @@ const registrarUsuario = async (req, res, next) => {
     }
 };
 
-module.exports = { mostrarRegistro, getUsuarios, registrarUsuario };
+
+const cargarVideo = async (req, res, next) => {
+    try {
+        // Valida que existe archivo y sino lanza error
+        if (!req.file) {
+            return res.status(400).json({ ok: false, error: "No se subió ningún archivo" });
+        }
+
+        // Validar tipo de formatos permitidos (mp4, mov)
+        const tiposPermitidos = ['video/mp4', 'video/mov'];
+        if (!tiposPermitidos.includes(req.file.mimetype)) {
+            return res.status(400).json({ 
+                ok: false, 
+                error: "Solo se permiten videos (mp4, mov)" 
+            });
+        }
+
+        // Valida el tamaño máximo perimitido (500 MB) para probar
+        const tamanioMaximo = 500 * 1024 * 1024;
+        if (req.file.size > tamanioMaximo) {
+            return res.status(400).json({ 
+                ok: false, 
+                error: "El video no puede exceder 500 MB" 
+            });
+        }
+
+        // Genera un nombre random para el blob
+        const timestamp = Date.now();
+        const nombreBlob = `videos/${timestamp}-${req.file.originalname}`;
+        
+        // Subir a Azure
+        const resultado = await azureBlob.uploadBlob('videos', nombreBlob, req.file.buffer);
+
+        if (resultado.success) {
+            const urlVideo = azureBlob.getBlobUrl('videos', nombreBlob);
+            return res.json({ 
+                ok: true, 
+                mensaje: "Video cargado correctamente",
+                url: urlVideo,
+                blobName: nombreBlob
+            });
+        }
+
+        res.status(500).json({ ok: false, error: "Error al subir el video" });
+
+    } catch(err) {
+        console.error("Error al cargar video:", err);
+        res.status(500).json({ ok: false, error: "Error interno del servidor" });
+    }
+};
+
+module.exports = { mostrarRegistro, getUsuarios, registrarUsuario, cargarVideo };
