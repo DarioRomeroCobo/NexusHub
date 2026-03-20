@@ -12,6 +12,10 @@ const mostrarRegistro = (req, res) => {
     res.render("registro");
 };
 
+const mostrarInicioSesion = (req, res) => {
+    res.render("inicio-sesion");
+};
+
 const getUsuarios = async (req, res, next) => {
     try {
         const usuariosRaw = await db.query("SELECT * FROM usuario", []);
@@ -72,7 +76,7 @@ const registrarUsuario = async (req, res, next) => {
         const sql = 'INSERT INTO usuario (correo, contraseña) VALUES (@p0, @p1)';
         await db.query(sql, [correoNormalizado, passwordHash]);
 
-        res.json({ ok: true, mensaje: "Usuario registrado correctamente. Redirigiendo a la pagina de inicio ..." });
+        res.json({ ok: true, mensaje: "Usuario registrado correctamente. Redirigiendo a la pagina de inicio de sesión ..." });
 
     } catch(err) {
         console.error("Error al registrar el usuario:", err);
@@ -88,6 +92,42 @@ const registrarUsuario = async (req, res, next) => {
 };
 
 
+const validarSesion = async (req, res, next) => {
+    try {
+        const { correo, password } = req.body;
+        const correoNormalizado = (correo || "").trim().toLowerCase();
+
+        if (!correoNormalizado || !password) {
+            return res.status(400).json({ ok: false, error: "Introduce correo y contraseña" });
+        }
+
+        const resultado = await db.query('SELECT * FROM usuario WHERE correo = @p0', [correoNormalizado]);
+        
+        const filas = resultado.recordset || resultado; 
+
+        if (filas.length === 0) {
+            return res.status(401).json({ ok: false, error: "Usuario o contraseña incorrectos" });
+        }
+
+        const usuario = filas[0];
+
+        const esValida = await bcrypt.compare(password, usuario.contraseña);
+
+        if (!esValida) {
+            return res.status(401).json({ ok: false, error: "Usuario o contraseña incorrectos" });
+        }
+
+        req.session.usuarioId = usuario.id_usuario || usuario.id || null;
+        req.session.correo = usuario.correo;
+        req.session.isLoggedIn = true;
+
+        // Respondemos al cliente para que el JS de la vista haga el redireccionamiento
+        res.json({ ok: true, mensaje: "¡Bienvenido a NexusHub!" });
+
+    } catch (err) {
+        console.error("Error en el login:", err);
+    }
+};
 const cargarVideo = async (req, res, next) => {
     try {
         // Valida que existe archivo y sino lanza error
@@ -138,4 +178,15 @@ const cargarVideo = async (req, res, next) => {
     }
 };
 
-module.exports = { mostrarRegistro, getUsuarios, registrarUsuario, cargarVideo };
+const logout = (req, res, next) => {
+    req.session.destroy((err) => {
+        if (err) {
+            console.error("Error al cerrar sesión:", err);
+            return res.redirect("/bienvenida");
+        }
+        res.clearCookie('connect.sid');
+        res.redirect("/bienvenida");
+    });
+};
+
+module.exports = { mostrarRegistro, getUsuarios, registrarUsuario, cargarVideo, mostrarInicioSesion, validarSesion, logout };
