@@ -1,4 +1,8 @@
 document.addEventListener("DOMContentLoaded", () => {
+    const EXTENSIONES_PERMITIDAS = [".mp4", ".mov"];
+    const MIMETYPES_PERMITIDOS = ["video/mp4", "video/quicktime"];
+    const TAMANO_MAXIMO_BYTES = 256 * 1024 * 1024 * 1024;
+
     const botonSubir = document.getElementById("btn-subir-nuevo-video");
     const inputVideo = document.getElementById("input-video");
     const formulario = document.getElementById("form-subir-video");
@@ -21,6 +25,21 @@ document.addEventListener("DOMContentLoaded", () => {
 
         feedback.classList.add("d-none");
         feedback.classList.remove("alert-danger", "alert-success");
+
+        const resultadoValidacion = validarArchivoVideo(
+            archivoVideo,
+            EXTENSIONES_PERMITIDAS,
+            MIMETYPES_PERMITIDOS,
+            TAMANO_MAXIMO_BYTES
+        );
+
+        if (!resultadoValidacion.ok) {
+            feedback.textContent = resultadoValidacion.error;
+            feedback.classList.remove("d-none");
+            feedback.classList.add("alert-danger");
+            inputVideo.value = "";
+            return;
+        }
 
         const formData = new FormData(formulario);
 
@@ -60,6 +79,29 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     });
 });
+
+function validarArchivoVideo(archivoVideo, extensionesPermitidas, mimeTypesPermitidos, tamanoMaximoBytes) {
+    const nombre = (archivoVideo.name || "").toLowerCase();
+    const extensionValida = extensionesPermitidas.some((extension) => nombre.endsWith(extension));
+    const mimeType = (archivoVideo.type || "").toLowerCase();
+    const mimeTypeValido = mimeType === "" || mimeTypesPermitidos.includes(mimeType);
+
+    if (!extensionValida || !mimeTypeValido) {
+        return {
+            ok: false,
+            error: "Solo se permiten videos en formato .mp4 y .mov"
+        };
+    }
+
+    if (archivoVideo.size > tamanoMaximoBytes) {
+        return {
+            ok: false,
+            error: "El archivo supera el limite de 256 GB"
+        };
+    }
+
+    return { ok: true };
+}
 
 function obtenerDuracionSegundos(archivoVideo) {
     return new Promise((resolve, reject) => {
