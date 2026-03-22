@@ -70,8 +70,28 @@ const registrarUsuario = async (req, res, next) => {
         const sql = 'INSERT INTO usuario (correo, contraseña) VALUES (@p0, @p1)';
         await db.query(sql, [correoNormalizado, passwordHash]);
 
-        res.json({ ok: true, mensaje: "Usuario registrado correctamente. Redirigiendo a la pagina de inicio de sesión ..." });
+        // Obtener usuario recién creado
+        const nuevoUsuario = await db.query(
+            'SELECT * FROM usuario WHERE correo = @p0',
+            [correoNormalizado]
+        );
 
+        const usuario = nuevoUsuario.recordset
+            ? nuevoUsuario.recordset[0]
+            : nuevoUsuario[0];
+
+        req.session.usuarioId = usuario.id_usuario;
+        req.session.correo = usuario.correo;
+        req.session.isLoggedIn = true;
+
+        req.session.save(err => {
+            if (err) {
+                console.error(err);
+                return res.status(500).json({ ok: false, error: "Error al guardar sesión" });
+            }
+
+            res.json({ ok: true });
+        });
     } catch(err) {
         console.error("Error al registrar el usuario:", err);
 
