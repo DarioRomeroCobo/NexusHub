@@ -248,4 +248,12 @@ const logout = (req, res, next) => {
     });
 };
 
-module.exports = { mostrarRegistro, getUsuarios, registrarUsuario, cargarVideo, mostrarInicioSesion, mostrarSubirVideo, validarSesion, logout };
+const mostrarVincularYoutube = (req, res) => {
+    res.status(501).render("error", {
+        codigo: 501,
+        titulo: "Integración no disponible",
+        mensaje: "La vinculación con YouTube está en desarrollo. Vuelve pronto."
+    });
+};
+
+module.exports = { mostrarRegistro, getUsuarios, registrarUsuario, cargarVideo, mostrarInicioSesion, mostrarSubirVideo, validarSesion, logout, mostrarVincularYoutube };
