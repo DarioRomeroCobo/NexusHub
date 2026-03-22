@@ -1,3 +1,38 @@
-<header class="navbar navbar-expand-md bg-white sticky-top shadow-sm py-1">
+<nav class="navbar navbar-expand-md bg-white sticky-top shadow-sm py-1">
+    <div class="container-fluid px-4">
+        
+        <% if (locals.isLoggedIn && locals.correo) { %>
+            <form class="d-flex mx-auto d-none d-lg-flex" style="width: 35%;" role="search">
+                <div class="input-group">
+                    <span class="input-group-text bg-light border-end-0">
+                        <i class="fa-solid fa-magnifying-glass text-muted"></i>
+                    </span>
+                    <input class="form-control bg-light border-start-0" type="search" placeholder="Buscar en NexusHub...">
+                </div>
+            </form>
 
-</header>
+            <div class="navbar-nav ms-auto align-items-center gap-3">
+                <span class="text-muted fw-medium d-none d-md-inline">
+                    Hola, <span class="text-primary fw-bold text-capitalize">
+                        <%= correo.split('@')[0] %>
+                    </span>
+                </span>
+                
+                <div class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle d-flex align-items-center gap-2" href="#" data-bs-toggle="dropdown" aria-expanded="false">
+                        <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center fw-bold shadow-sm" style="width: 38px; height: 38px;">
+                            <%= correo.charAt(0).toUpperCase() %>
+                        </div>
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end shadow border-0 mt-2">
+                        <li><a class="dropdown-item py-2" href="/perfil"><i class="fa-solid fa-user me-2 text-muted"></i>Mi Perfil</a></li>
+                        <li><a class="dropdown-item py-2" href="/usuario/ver-usuarios"><i class="fa-solid fa-users me-2 text-muted"></i>Ver usuarios</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item text-danger py-2" href="/usuario/logout"><i class="fa-solid fa-right-from-bracket me-2"></i>Cerrar sesión</a></li>
+                    </ul>
+                </div>
+            </div>
+        <% } %>
+
+    </div>
+</nav>

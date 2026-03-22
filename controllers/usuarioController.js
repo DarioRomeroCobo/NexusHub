@@ -116,7 +116,15 @@ const validarSesion = async (req, res, next) => {
         req.session.isLoggedIn = true;
 
         // Respondemos al cliente para que el JS de la vista haga el redireccionamiento
-        res.json({ ok: true, mensaje: "¡Bienvenido a NexusHub!" });
+        // res.json({ ok: true, mensaje: "¡Bienvenido a NexusHub!" });
+        req.session.save((err) => {
+            if (err) {
+                console.error("Error al guardar la sesión:", err);
+                return res.status(500).json({ ok: false, error: "Error al procesar la sesión" });
+            }
+            // Ahora sí, respondemos al cliente
+            res.json({ ok: true, mensaje: "¡Bienvenido a NexusHub!" });
+        });
 
     } catch (err) {
         console.error("Error en el login:", err);
@@ -136,17 +144,16 @@ const logout = (req, res, next) => {
 };
 
 const mostrarInicioUsuario = (req, res) => {
-    if (!req.session.usuarioId) {
+    if (!req.session.usuarioId || !req.session.correo) {
         return res.redirect("/usuario/inicio-sesion");
     }
 
+    const nombreExtraido = req.session.correo.split('@')[0];
+
     res.render("inicio-usuario", { 
         isLoggedIn: true,
-        correo: req.session.correo, 
-        user: req.session.correo.split('@')[0] 
+        user: nombreExtraido 
     });
 };
 
-module.exports = { mostrarRegistro, getUsuarios, registrarUsuario, mostrarInicioSesion, validarSesion, logout,
-    mostrarInicioUsuario
- };
+module.exports = { mostrarRegistro, getUsuarios, registrarUsuario, mostrarInicioSesion, validarSesion, logout, mostrarInicioUsuario};
