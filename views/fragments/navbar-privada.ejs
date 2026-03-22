@@ -1,0 +1,56 @@
+<nav class="navbar navbar-expand-md bg-white sticky-top shadow-sm py-1">
+    <div class="container-fluid px-4">
+
+        <a class="navbar-brand d-flex align-items-center" href="/usuario/inicio" aria-label="Inicio">
+            <img src="/img/logo.png" alt="Logo NexusHub" width="80" height="32" class="img-fluid rounded">
+        </a>
+
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarBarPrivada"
+            aria-controls="navbarBarPrivada" aria-expanded="false" aria-label="Abrir navegación">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarBarPrivada">
+            
+            <form class="d-flex mx-auto mt-2 mt-md-0 d-none d-lg-flex" style="width: 35%; min-width: 250px;" role="search">
+                <div class="input-group">
+                    <span class="input-group-text bg-light border-end-0">
+                        <i class="fa-solid fa-magnifying-glass text-muted"></i>
+                    </span>
+                    <input class="form-control bg-light border-start-0" type="search" placeholder="Buscar en NexusHub..." aria-label="Search">
+                </div>
+            </form>
+
+            <div class="navbar-nav ms-auto align-items-center gap-2">
+                
+                <a href="/usuario/ver-usuarios" class="btn btn-outline-primary px-3 py-2 rounded-pill fw-semibold btn-sm">
+                    Ver usuarios
+                </a>
+
+                <a href="/usuario/subir-video" class="btn btn-primary px-3 py-2 rounded-pill fw-semibold btn-sm">
+                    Subir vídeo
+                </a>
+
+                <a href="/usuario/vincular-redes" class="btn btn-primary px-3 py-2 rounded-pill fw-semibold btn-sm">
+                    Vincular redes
+                </a>
+
+                <div class="nav-item dropdown ms-lg-2">
+                    <a class="nav-link dropdown-toggle d-flex align-items-center gap-2" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center fw-bold shadow-sm" style="width: 38px; height: 38px; font-size: 0.9rem;">
+                            <%= user.charAt(0).toUpperCase() %>
+                        </div>
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end shadow border-0 mt-2" aria-labelledby="userDropdown">
+                        <li class="px-3 py-2 small text-muted border-bottom mb-1">Conectado como: <strong><%= user %></strong></li>
+                        <li><a class="dropdown-item" href="/perfil"><i class="fa-solid fa-user me-2"></i>Mi Perfil</a></li>
+                        <li><a class="dropdown-item" href="/configuracion"><i class="fa-solid fa-gear me-2"></i>Ajustes</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item text-danger" href="/usuario/logout"><i class="fa-solid fa-right-from-bracket me-2"></i>Cerrar sesión</a></li>
+                    </ul>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</nav>

@@ -135,4 +135,18 @@ const logout = (req, res, next) => {
     });
 };
 
-module.exports = { mostrarRegistro, getUsuarios, registrarUsuario, mostrarInicioSesion, validarSesion, logout };
+const mostrarInicioUsuario = (req, res) => {
+    if (!req.session.usuarioId) {
+        return res.redirect("/usuario/inicio-sesion");
+    }
+
+    res.render("inicio-usuario", { 
+        isLoggedIn: true,
+        correo: req.session.correo, 
+        user: req.session.correo.split('@')[0] 
+    });
+};
+
+module.exports = { mostrarRegistro, getUsuarios, registrarUsuario, mostrarInicioSesion, validarSesion, logout,
+    mostrarInicioUsuario
+ };
