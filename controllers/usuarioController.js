@@ -104,8 +104,28 @@ const registrarUsuario = async (req, res, next) => {
         const sql = 'INSERT INTO usuario (correo, contraseña) VALUES (@p0, @p1)';
         await db.query(sql, [correoNormalizado, passwordHash]);
 
-        res.json({ ok: true, mensaje: "Usuario registrado correctamente. Redirigiendo a la pagina de inicio de sesión ..." });
+        // Obtener usuario recién creado
+        const nuevoUsuario = await db.query(
+            'SELECT * FROM usuario WHERE correo = @p0',
+            [correoNormalizado]
+        );
 
+        const usuario = nuevoUsuario.recordset
+            ? nuevoUsuario.recordset[0]
+            : nuevoUsuario[0];
+
+        req.session.usuarioId = usuario.id_usuario;
+        req.session.correo = usuario.correo;
+        req.session.isLoggedIn = true;
+
+        req.session.save(err => {
+            if (err) {
+                console.error(err);
+                return res.status(500).json({ ok: false, error: "Error al guardar sesión" });
+            }
+
+            res.json({ ok: true });
+        });
     } catch(err) {
         console.error("Error al registrar el usuario:", err);
 
@@ -150,7 +170,15 @@ const validarSesion = async (req, res, next) => {
         req.session.isLoggedIn = true;
 
         // Respondemos al cliente para que el JS de la vista haga el redireccionamiento
-        res.json({ ok: true, mensaje: "¡Bienvenido a NexusHub!" });
+        // res.json({ ok: true, mensaje: "¡Bienvenido a NexusHub!" });
+        req.session.save((err) => {
+            if (err) {
+                console.error("Error al guardar la sesión:", err);
+                return res.status(500).json({ ok: false, error: "Error al procesar la sesión" });
+            }
+            // Ahora sí, respondemos al cliente
+            res.json({ ok: true, mensaje: "¡Bienvenido a NexusHub!" });
+        });
 
     } catch (err) {
         console.error("Error en el login:", err);
@@ -248,6 +276,20 @@ const logout = (req, res, next) => {
     });
 };
 
+
+const mostrarInicioUsuario = (req, res) => {
+    if (!req.session.usuarioId || !req.session.correo) {
+        return res.redirect("/usuario/inicio-sesion");
+    }
+
+    const nombreExtraido = req.session.correo.split('@')[0];
+
+    res.render("inicio-usuario", { 
+        isLoggedIn: true,
+        user: nombreExtraido 
+    });
+};
+
 const mostrarVincularYoutube = (req, res) => {
     res.status(501).render("error", {
         codigo: 501,
@@ -256,4 +298,5 @@ const mostrarVincularYoutube = (req, res) => {
     });
 };
 
-module.exports = { mostrarRegistro, getUsuarios, registrarUsuario, cargarVideo, mostrarInicioSesion, mostrarSubirVideo, validarSesion, logout, mostrarVincularYoutube };
+module.exports = { mostrarRegistro, getUsuarios, registrarUsuario, cargarVideo, mostrarInicioSesion, mostrarSubirVideo, validarSesion, logout, mostrarInicioUsuario, mostrarVincularYoutube };
+
