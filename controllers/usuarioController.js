@@ -197,6 +197,24 @@ const cargarVideo = async (req, res, next) => {
         const timestamp = Date.now();
         const nombreArchivoSeguro = req.file.originalname.replace(/[^a-zA-Z0-9._-]/g, "_");
         const nombreBlob = `videos/${usuarioId}/${timestamp}-${nombreArchivoSeguro}`;
+
+        const nombreArchivoEnBD = await db.query(
+            `SELECT nombre_video
+             FROM VideosUsuario
+             WHERE correo_usuario = @p0
+             AND nombre_video = @p1`,
+             [correoUsuario, nombreArchivoSeguro]
+            );
+        
+        // Comprobar que no existe un video del usuario con el mismo nombre
+        const filas = nombreArchivoEnBD.recordset || nombreArchivoEnBD;
+
+        if (filas.length > 0) {
+            return res.status(400).json({ 
+                ok: false, 
+                error: "Ya tienes un video con ese nombre" 
+            });
+        }
         
         // Subir a Azure
         const resultado = await azureBlob.uploadBlob('videos', nombreBlob, req.file.buffer);
