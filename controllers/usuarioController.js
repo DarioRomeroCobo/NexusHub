@@ -1,13 +1,47 @@
 const bcrypt = require('bcrypt');
 const validator = require('validator'); 
 const db = require("../utils/middleware-bd");
-
+const AzureBlobStorage = require('../utils/azure-blob');
+const multer = require('multer');
+const upload = multer({ storage: multer.memoryStorage() });
+//Conexion con el recurso de Azure Blob Storage
+const CONNECTION_STRING = "DefaultEndpointsProtocol=https;AccountName=almacenamientonexushub;AccountKey=9JbBzi0ph16RzsPC7X3zRTJij0aCadWGY+H/a17Rcy3zGzqZvncqL9GUTv9jhpJ+UqBIaJF4n2XT+AStllDGeg==;EndpointSuffix=core.windows.net";
+//Crea la instacia
+const azureBlob = new AzureBlobStorage(CONNECTION_STRING);
 const mostrarRegistro = (req, res) => {
     res.render("registro");
 };
 
 const mostrarInicioSesion = (req, res) => {
     res.render("inicio-sesion");
+};
+
+const mostrarSubirVideo = async (req, res, next) => {
+    try {
+        const correoUsuario = (req.session.correo || "").trim().toLowerCase();
+        const videosRaw = await db.query(
+            `SELECT correo_usuario, url_video, nombre_video, peso_bytes, duracion_segundos, fecha_subida
+             FROM VideosUsuario
+             WHERE correo_usuario = @p0
+             ORDER BY fecha_subida DESC`,
+            [correoUsuario]
+        );
+
+        const videos = (videosRaw || []).map((video) => ({
+            nombre: video.nombre_video,
+            pesoMB: (Number(video.peso_bytes || 0) / (1024 * 1024)).toFixed(2),
+            fecha: video.fecha_subida,
+            duracionSegundos: Number(video.duracion_segundos || 0),
+            url: video.url_video
+        }));
+
+        res.render("subir-video", {
+            videos,
+            totalVideos: videos.length
+        });
+    } catch (err) {
+        next(err);
+    }
 };
 
 const getUsuarios = async (req, res, next) => {
@@ -148,6 +182,85 @@ const validarSesion = async (req, res, next) => {
 
     } catch (err) {
         console.error("Error en el login:", err);
+    }
+};
+const cargarVideo = async (req, res, next) => {
+    try {
+        if (req.session.isLoggedIn !== true || !req.session.usuarioId) {
+            return res.status(401).json({ ok: false, error: "Debes iniciar sesión para subir videos" });
+        }
+
+        const correoUsuario = (req.session.correo || "").trim().toLowerCase();
+        const duracionSegundos = Number.parseInt(req.body.duracion_segundos, 10);
+
+        // Valida que existe archivo y sino lanza error
+        if (!req.file) {
+            return res.status(400).json({ ok: false, error: "No se subió ningún archivo" });
+        }
+
+        if (!Number.isFinite(duracionSegundos) || duracionSegundos < 0) {
+            return res.status(400).json({ ok: false, error: "Duración de video no válida" });
+        }
+
+        // Validar tipo de formatos permitidos (mp4, mov)
+        const tiposPermitidos = ['video/mp4', 'video/quicktime'];
+        if (!tiposPermitidos.includes(req.file.mimetype)) {
+            return res.status(400).json({ 
+                ok: false, 
+                error: "Solo se permiten videos (mp4, mov)" 
+            });
+        }
+
+        // Valida el tamaño máximo perimitido (500 MB) para probar
+        const tamanioMaximo = 500 * 1024 * 1024;
+        if (req.file.size > tamanioMaximo) {
+            return res.status(400).json({ 
+                ok: false, 
+                error: "El video no puede exceder 500 MB" 
+            });
+        }
+
+        // Genera un nombre random para el blob
+        const usuarioId = req.session.usuarioId;
+        const timestamp = Date.now();
+        const nombreArchivoSeguro = req.file.originalname.replace(/[^a-zA-Z0-9._-]/g, "_");
+        const nombreBlob = `videos/${usuarioId}/${timestamp}-${nombreArchivoSeguro}`;
+        
+        // Subir a Azure
+        const resultado = await azureBlob.uploadBlob('videos', nombreBlob, req.file.buffer);
+
+        if (resultado.success) {
+            const urlVideo = azureBlob.getBlobUrl('videos', nombreBlob);
+
+            if (urlVideo.length > 255) {
+                await azureBlob.deleteBlob('videos', nombreBlob);
+                return res.status(400).json({ ok: false, error: "La URL del video supera el máximo permitido de 255 caracteres" });
+            }
+
+            await db.query(
+                `INSERT INTO VideosUsuario (correo_usuario, url_video, nombre_video, peso_bytes, duracion_segundos)
+                 VALUES (@p0, @p1, @p2, @p3, @p4)`,
+                [
+                    correoUsuario,
+                    urlVideo,
+                    req.file.originalname,
+                    req.file.size,
+                    duracionSegundos
+                ]
+            );
+
+            return res.json({ 
+                ok: true, 
+                mensaje: "Video cargado correctamente",
+                url: urlVideo,
+                blobName: nombreBlob
+            });
+        }
+
+        res.status(500).json({ ok: false, error: "Error al subir el video" });
+
+    } catch(err) {
+        console.error("Error al cargar video:", err);
         res.status(500).json({ ok: false, error: "Error interno del servidor" });
     }
 };
@@ -163,6 +276,7 @@ const logout = (req, res, next) => {
     });
 };
 
+
 const mostrarInicioUsuario = (req, res) => {
     if (!req.session.usuarioId || !req.session.correo) {
         return res.redirect("/usuario/inicio-sesion");
@@ -176,4 +290,13 @@ const mostrarInicioUsuario = (req, res) => {
     });
 };
 
-module.exports = { mostrarRegistro, getUsuarios, registrarUsuario, mostrarInicioSesion, validarSesion, logout, mostrarInicioUsuario};
+const mostrarVincularYoutube = (req, res) => {
+    res.status(501).render("error", {
+        codigo: 501,
+        titulo: "Integración no disponible",
+        mensaje: "La vinculación con YouTube está en desarrollo. Vuelve pronto."
+    });
+};
+
+module.exports = { mostrarRegistro, getUsuarios, registrarUsuario, cargarVideo, mostrarInicioSesion, mostrarSubirVideo, validarSesion, logout, mostrarInicioUsuario, mostrarVincularYoutube };
+
