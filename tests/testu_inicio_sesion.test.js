@@ -8,7 +8,7 @@ jest.mock('bcrypt', () => ({
 
 const bcrypt = require('bcrypt');
 const db = require('../utils/middleware-bd');
-const { mostrarInicioSesion, validarSesion } = require('../controllers/usuarioController');
+const { mostrarInicioSesion, validarSesion } = require('../controllers/inicioSesionController');
 
 const mockRes = () => {
     const res = {};
@@ -27,8 +27,17 @@ const mockReq = (body = {}) => ({
 
 const mockNext = () => jest.fn();
 
+let consoleErrorSpy;
+
 beforeEach(() => {
     jest.clearAllMocks();
+    consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+});
+
+afterEach(() => {
+    if (consoleErrorSpy) {
+        consoleErrorSpy.mockRestore();
+    }
 });
 
 describe('mostrarInicioSesion', () => {
@@ -239,9 +248,9 @@ describe('validarSesion - errores generales', () => {
 
         await validarSesion(req, res, next);
 
-        expect(res.status).toHaveBeenCalledWith(500);
-        expect(res.json).toHaveBeenCalledWith({ ok: false, error: 'Error interno del servidor' });
-        expect(next).not.toHaveBeenCalled();
+        expect(next).toHaveBeenCalled();
+        expect(res.status).not.toHaveBeenCalled();
+        expect(res.json).not.toHaveBeenCalled();
     });
 
     test('si bcrypt.compare falla devuelve error 500', async () => {
@@ -258,7 +267,8 @@ describe('validarSesion - errores generales', () => {
 
         await validarSesion(req, res, next);
 
-        expect(res.status).toHaveBeenCalledWith(500);
-        expect(res.json).toHaveBeenCalledWith({ ok: false, error: 'Error interno del servidor' });
+        expect(next).toHaveBeenCalled();
+        expect(res.status).not.toHaveBeenCalled();
+        expect(res.json).not.toHaveBeenCalled();
     });
 });
