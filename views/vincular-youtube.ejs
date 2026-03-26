@@ -13,57 +13,16 @@
                 <p class="text-muted mb-4">
                     Conecta tu canal para que cada usuario gestione su propio YouTube desde NexusHub.
                 </p>
+                <div class="p-3 p-md-4 rounded-4 border bg-light mb-4">
+                    <h2 class="h5 fw-bold mb-2">Conexión OAuth</h2>
+                    <p class="mb-0 text-muted">
+                        Pulsa el botón para iniciar sesión con Google y autorizar el acceso a YouTube.
+                    </p>
+                </div>
 
-                <% if (mensaje) { %>
-                    <div class="alert alert-success" role="alert"><%= mensaje %></div>
-                <% } %>
-
-                <% if (error) { %>
-                    <div class="alert alert-danger" role="alert"><%= error %></div>
-                <% } %>
-
-                <% if (youtubeVinculado) { %>
-                    <div class="p-3 p-md-4 rounded-4 border bg-light mb-4">
-                        <h2 class="h5 fw-bold mb-3">Cuenta vinculada</h2>
-                        <% if (youtubeChannelPhotoUrl) { %>
-                            <img 
-                                src="<%= youtubeChannelPhotoUrl %>" 
-                                alt="Canal de YouTube" 
-                                width="80" 
-                                height="80" 
-                                class="rounded-circle mb-2 border"
-                                style="object-fit: cover; display: block;"
-                                crossorigin="anonymous"
-                                referrerpolicy="no-referrer"
-                            >
-                        <% } %>
-                        <p class="mb-2"><strong>Canal:</strong> <%= youtubeChannelTitle || "No disponible" %></p>
-                        <p class="mb-0"><strong>Vinculada el:</strong> <%= youtubeLinkedAt ? new Date(youtubeLinkedAt).toLocaleString('es-ES') : "No disponible" %></p>
-                    </div>
-
-                    <div class="d-flex flex-wrap gap-2">
-                        <a href="/usuario/youtube/auth" class="btn btn-gradient rounded-pill px-4 fw-semibold">
-                            Volver a vincular
-                        </a>
-
-                        <form method="POST" action="/usuario/youtube/desvincular" onsubmit="return confirm('¿Seguro que quieres desvincular tu cuenta de YouTube?');">
-                            <button type="submit" class="btn btn-outline-danger rounded-pill px-4 fw-semibold">
-                                Desvincular
-                            </button>
-                        </form>
-                    </div>
-                <% } else { %>
-                    <div class="p-3 p-md-4 rounded-4 border bg-light mb-4">
-                        <h2 class="h5 fw-bold mb-2">Aún no hay cuenta vinculada</h2>
-                        <p class="mb-0 text-muted">
-                            Pulsa el botón para iniciar sesión con Google y autorizar el acceso a YouTube.
-                        </p>
-                    </div>
-
-                    <a href="/usuario/youtube/auth" class="btn btn-gradient rounded-pill px-4 py-2 fw-semibold">
-                        Conectar con YouTube
-                    </a>
-                <% } %>
+                <a href="/usuario/youtube/auth" class="btn btn-gradient rounded-pill px-4 py-2 fw-semibold">
+                    Conectar con YouTube
+                </a>
             </section>
         </div>
     </main>
