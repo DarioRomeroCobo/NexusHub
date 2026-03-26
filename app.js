@@ -1,4 +1,5 @@
 "use strict";
+require("dotenv").config();
 
 const express = require("express");
 const favicon = require("serve-favicon");
@@ -36,6 +37,7 @@ app.use((req, res, next) => {
     res.locals.isLoggedIn = req.session.isLoggedIn || false;
     next();
 });
+
 
 const MySqlStore = mysqlSession(session);
 

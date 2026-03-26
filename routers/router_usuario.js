@@ -1,16 +1,39 @@
 const express = require('express');
 const router = express.Router();
-const db = require("../utils/middleware-bd");
-
-
 const multer = require('multer');
-const { mostrarRegistro, getUsuarios, registrarUsuario, cargarVideo, mostrarInicioSesion, mostrarInicioUsuario, mostrarSubirVideo, validarSesion, logout, mostrarVincularYoutube } = require('../controllers/usuarioController');
+
+const {
+    mostrarRegistro,
+    registrarUsuario
+} = require('../controllers/registroController');
+
+const {
+    mostrarInicioSesion,
+    mostrarInicioUsuario,
+    validarSesion,
+    logout
+} = require('../controllers/inicioSesionController');
+
+const { getUsuarios } = require('../controllers/userController');
+
+const {
+    mostrarSubirVideo,
+    cargarVideo
+} = require('../controllers/videoController');
+
+const {
+    mostrarVincularYoutube,
+    iniciarVinculacionYoutube,
+    callbackYoutubeOAuth,
+    desvincularYoutube
+} = require('../controllers/youtubeController');
 
 const { verificarAutenticacion, verificarNoAutenticado } = require("../utils/middleware-auth");
 const upload = multer({ storage: multer.memoryStorage() });
-// GET - muestra el formulario
+
+
 router.get("/registro", verificarNoAutenticado, mostrarRegistro);
-router.get("/ver-usuarios",getUsuarios);
+router.get("/ver-usuarios", getUsuarios);
 router.get("/inicio-sesion", verificarNoAutenticado, mostrarInicioSesion);
 router.get("/subir-video", verificarAutenticacion, mostrarSubirVideo);
 router.post("/api/", registrarUsuario);
@@ -20,5 +43,8 @@ router.get("/inicio", verificarAutenticacion, mostrarInicioUsuario);
 
 router.post("/api/cargar-video", verificarAutenticacion, upload.single('video'), cargarVideo);
 
-router.get("/vincular-youtube", mostrarVincularYoutube);
+router.get("/vincular-youtube", verificarAutenticacion, mostrarVincularYoutube);
+router.get("/youtube/auth", verificarAutenticacion, iniciarVinculacionYoutube);
+router.get("/youtube/callback", verificarAutenticacion, callbackYoutubeOAuth);
+router.post("/youtube/desvincular", verificarAutenticacion, desvincularYoutube);
 module.exports = router;

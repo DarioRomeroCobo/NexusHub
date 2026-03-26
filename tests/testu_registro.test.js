@@ -8,7 +8,7 @@ jest.mock('bcrypt', () => ({
 
 const bcrypt = require('bcrypt');
 const db = require('../utils/middleware-bd');
-const { mostrarRegistro, registrarUsuario } = require('../controllers/usuarioController');
+const { mostrarRegistro, registrarUsuario } = require('../controllers/registroController');
 
 const mockRes = () => {
     const res = {};
@@ -18,7 +18,12 @@ const mockRes = () => {
     return res;
 };
 
-const mockReq = (body = {}) => ({ body });
+const mockReq = (body = {}) => ({
+    body,
+    session: {
+        save: jest.fn((callback) => callback(null))
+    }
+});
 const mockNext = () => jest.fn();
 
 beforeEach(() => {
@@ -165,13 +170,18 @@ describe('registrarUsuario - flujo correcto', () => {
         bcrypt.hash.mockResolvedValue('hash_ok');
         db.query
             .mockResolvedValueOnce([])
-            .mockResolvedValueOnce({});
+            .mockResolvedValueOnce({})
+            .mockResolvedValueOnce([{ id_usuario: 1, correo: 'test@correo.com' }]);
 
         await registrarUsuario(req, res, next);
 
         expect(db.query).toHaveBeenNthCalledWith(1, 'SELECT * FROM usuario WHERE correo = @p0', ['test@correo.com']);
         expect(db.query).toHaveBeenNthCalledWith(2, 'INSERT INTO usuario (correo, contraseña) VALUES (@p0, @p1)', ['test@correo.com', 'hash_ok']);
-        expect(res.json).toHaveBeenCalledWith({ ok: true, mensaje: 'Usuario registrado correctamente. Redirigiendo a la pagina de inicio ...' });
+        expect(db.query).toHaveBeenNthCalledWith(3, 'SELECT * FROM usuario WHERE correo = @p0', ['test@correo.com']);
+        expect(res.json).toHaveBeenCalledWith({ ok: true });
+        expect(req.session.usuarioId).toBe(1);
+        expect(req.session.correo).toBe('test@correo.com');
+        expect(req.session.isLoggedIn).toBe(true);
         expect(next).not.toHaveBeenCalled();
     });
 });
