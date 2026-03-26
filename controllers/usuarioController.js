@@ -203,7 +203,7 @@ const cargarVideo = async (req, res, next) => {
              FROM VideosUsuario
              WHERE correo_usuario = @p0
              AND nombre_video = @p1`,
-             [correoUsuario, nombreArchivoSeguro]
+             [correoUsuario, req.file.originalname]
             );
         
         // Comprobar que no existe un video del usuario con el mismo nombre
