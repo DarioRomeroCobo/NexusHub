@@ -3,29 +3,37 @@ document.addEventListener("DOMContentLoaded", () => {
     const MIMETYPES_PERMITIDOS = ["video/mp4", "video/quicktime"];
     const TAMANO_MAXIMO_BYTES = 256 * 1024 * 1024 * 1024;
 
+
+    //Referencias a elementos del DOM
     const botonSubir = document.getElementById("btn-subir-nuevo-video");
     const inputVideo = document.getElementById("input-video");
     const formulario = document.getElementById("form-subir-video");
     const feedback = document.getElementById("subida-feedback");
 
+    // Si falta algún elemento, se detiene la ejecución
     if (!botonSubir || !inputVideo || !formulario || !feedback) {
         return;
     }
 
+    //Se abre el selector de archivos al hacer click en el botón
     botonSubir.addEventListener("click", () => {
         inputVideo.click();
     });
 
+    //Cuando el usuario selecciona un archivo
     inputVideo.addEventListener("change", async () => {
+        // Si no hay archivo seleccionado, salir
         if (!inputVideo.files || inputVideo.files.length === 0) {
             return;
         }
 
         const archivoVideo = inputVideo.files[0];
 
+
         feedback.classList.add("d-none");
         feedback.classList.remove("alert-danger", "alert-success");
 
+        //Validación del archivo
         const resultadoValidacion = validarArchivoVideo(
             archivoVideo,
             EXTENSIONES_PERMITIDAS,
@@ -33,6 +41,7 @@ document.addEventListener("DOMContentLoaded", () => {
             TAMANO_MAXIMO_BYTES
         );
 
+        //Si validación falla, mostrar error y cancelar
         if (!resultadoValidacion.ok) {
             feedback.textContent = resultadoValidacion.error;
             feedback.classList.remove("d-none");
@@ -41,9 +50,11 @@ document.addEventListener("DOMContentLoaded", () => {
             return;
         }
 
+        //Crear FormData para enviar al backend
         const formData = new FormData(formulario);
 
         try {
+            //Se deshabilita el botón para evitar múltiples envíos
             botonSubir.disabled = true;
             botonSubir.textContent = "Subiendo...";
 
@@ -57,6 +68,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
             const resultado = await response.json();
 
+            // Si hay error en el backend, lanzar excepción
             if (!response.ok || !resultado.ok) {
                 throw new Error(resultado.error || "No se pudo subir el video");
             }
@@ -65,6 +77,7 @@ document.addEventListener("DOMContentLoaded", () => {
             feedback.classList.remove("d-none");
             feedback.classList.add("alert-success");
 
+            //recargar la página tras subir el vídeo
             setTimeout(() => {
                 window.location.reload();
             }, 1200);
@@ -80,6 +93,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 });
 
+//Función para validar el archivo de vídeo
 function validarArchivoVideo(archivoVideo, extensionesPermitidas, mimeTypesPermitidos, tamanoMaximoBytes) {
     const nombre = (archivoVideo.name || "").toLowerCase();
     const extensionValida = extensionesPermitidas.some((extension) => nombre.endsWith(extension));
@@ -103,6 +117,7 @@ function validarArchivoVideo(archivoVideo, extensionesPermitidas, mimeTypesPermi
     return { ok: true };
 }
 
+//Funcion para obtener la duración vídeo en segundos
 function obtenerDuracionSegundos(archivoVideo) {
     return new Promise((resolve, reject) => {
         const video = document.createElement("video");
