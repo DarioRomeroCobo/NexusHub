@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<!-- head -->
+<%- include("fragments/head") %>
+
+<body class="d-flex flex-column min-vh-100 bg-light">
+<%- include("fragments/header") %>
+    <%- include("fragments/navbar") %>
+    <main class="flex-grow-1">
+
+        <section class="py-5 border-bottom inicio-hero">
+            <div class="container">
+                <div class="row align-items-center g-4">
+
+                    <div class="col-lg-7">
+
+                        <span class="badge text-white mb-3 inicio-badge-gradient">
+                            Sesión iniciada correctamente
+                        </span>
+
+                        <h1 class="display-5 fw-bold mb-3 text-white">
+                            Bienvenido de nuevo  <strong><%= correo %></strong>
+                        </h1>
+
+                        <p class="lead text-white mb-4">
+                            Ya puedes empezar a gestionar tus redes sociales desde un único lugar.
+                        </p>
+
+                        <p class="text-white-50 mb-4">
+                            Accede a tus herramientas, programa contenido y revisa tus analíticas de forma sencilla.
+                        </p>
+
+                        <div class="d-flex flex-wrap gap-2">
+                            <a href="/dashboard" class="btn btn-gradient btn-lg rounded-pill px-4 fw-bold">
+                                Ir al panel
+                            </a>
+
+                            <a href="/usuario/perfil" class="btn btn-outline-light btn-lg rounded-pill px-4 fw-bold">
+                                Ver perfil
+                            </a>
+                        </div>
+
+                    </div>
+
+                    <div class="col-lg-5 text-center">
+                        <img src="/img/logo.png"
+                             alt="Logo NexusHub"
+                             class="img-fluid rounded-4 shadow-lg bg-white inicio-logo-img">
+                    </div>
+
+                </div>
+            </div>
+        </section>
+
+        <section class="py-5">
+            <div class="container">
+                <div class="row g-4">
+
+                    <div class="col-md-4">
+                        <article class="h-100 p-4 border rounded-4 shadow-sm bg-white hover-card">
+                            <h2 class="h4 mb-3 text-primary">Crear publicación</h2>
+                            <p class="text-muted">
+                                Redacta y programa contenido para tus redes sociales fácilmente.
+                            </p>
+                            <a href="/publicaciones/crear" class="btn btn-sm btn-primary rounded-pill">
+                                Crear
+                            </a>
+                        </article>
+                    </div>
+
+                    <div class="col-md-4">
+                        <article class="h-100 p-4 border rounded-4 shadow-sm bg-white hover-card">
+                            <h2 class="h4 mb-3 text-primary">Ver analíticas</h2>
+                            <p class="text-muted">
+                                Consulta métricas unificadas de todas tus plataformas.
+                            </p>
+                            <a href="/analiticas" class="btn btn-sm btn-primary rounded-pill">
+                                Ver datos
+                            </a>
+                        </article>
+                    </div>
+
+                    <div class="col-md-4">
+                        <article class="h-100 p-4 border rounded-4 shadow-sm bg-white hover-card">
+                            <h2 class="h4 mb-3 text-primary">Gestionar cuentas</h2>
+                            <p class="text-muted">
+                                Conecta y administra tus redes sociales en un solo lugar.
+                            </p>
+                            <a href="/cuentas" class="btn btn-sm btn-primary rounded-pill">
+                                Gestionar
+                            </a>
+                        </article>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+
+        <section class="pb-5">
+            <div class="container">
+                <div class="p-4 p-md-5 bg-gradient-primary text-white rounded-4 shadow-sm text-center">
+                    <h2 class="h3 mb-2">Todo listo 🚀</h2>
+                    <p class="mb-0 fs-5">
+                        Estás dentro de <strong>NexusHub</strong>. Empieza a crear, programar y analizar tu contenido.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <%- include("fragments/footer") %>
+
+
+    
+</body>
+</html>

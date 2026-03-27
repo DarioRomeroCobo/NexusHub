@@ -126,3 +126,21 @@ input:focus {
     border-radius: 50px;
     padding: 0.5rem 1.5rem;
 }
+
+/* VISTA SUBIR VIDEO */
+
+.subir-video-page {
+    background: radial-gradient(circle at 12% 12%, #e8f1ff 0%, transparent 35%),
+        radial-gradient(circle at 90% 80%, #deecff 0%, transparent 40%),
+        #f8fbff;
+}
+
+.subir-video-hero {
+    background: linear-gradient(130deg, #0d1b2a, #1e3a5f, #2f6fd7);
+}
+
+.video-preview {
+    aspect-ratio: 16 / 9;
+    object-fit: cover;
+    background-color: #0d1b2a;
+}

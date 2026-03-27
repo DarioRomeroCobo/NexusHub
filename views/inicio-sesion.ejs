@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<%- include("fragments/head") %>
+
+<body class="d-flex flex-column min-vh-100 bg-light">
+    
+    <%- include("fragments/header") %>
+    <%- include("fragments/navbar") %>
+        <main class="flex-grow-1 d-flex align-items-center justify-content-center py-5 registro-main-bg">
+    <div class="card shadow-sm rounded-4 " style="width: 100%; max-width: 400px;">
+        <div class="card-body p-4">
+            <h2 class="text-center mb-4">Iniciar Sesión</h2>
+            
+            <form id="loginForm">
+                <div class="mb-3">
+                    <label for="correo" class="form-label">Correo electrónico</label>
+                    <input type="email" class="form-control" id="correo" name="correo" required placeholder="nombre@ejemplo.com">
+                </div>
+                
+                <div class="mb-3">
+                    <label for="password" class="form-label">Contraseña</label>
+                    <input type="password" class="form-control" id="password" name="password" required placeholder="••••••••">
+                </div>
+
+                <div id="mensajeError" class="alert alert-danger d-none" role="alert"></div>
+
+                <button type="submit" class="btn btn-primary w-100 mt-3">Entrar a NexusHub</button>
+            </form>
+
+            <div class="text-center mt-4">
+                <p class="small text-muted">¿No tienes cuenta? <a href="/usuario/registro">Regístrate aquí</a></p>
+            </div>
+        </div>
+    </div>
+</main>
+
+
+
+    <%- include("fragments/footer") %>
+
+    <script src="/js/inicio-sesion.js"></script>
+</body>
+</html>
