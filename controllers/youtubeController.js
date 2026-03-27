@@ -69,7 +69,11 @@ const iniciarVinculacionYoutube = async (req, res, next) => {
 
         return res.redirect(`https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`);
     } catch (err) {
-        next(err);
+        // next(err);
+        return {
+            ok: false,
+            error: "Ha habido un error durante la vinculación: " + err
+        };
     }
 };
 
