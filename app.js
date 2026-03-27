@@ -68,6 +68,14 @@ app.get("/inicio-usuario", verificarAutenticacion, async function (req, res, nex
     res.render("inicio-usuario");
 });
 
+app.get("/politica-privacidad", async function (req, res, next) {
+    res.render("politica-privacidad");
+});
+
+app.get("/terminos-servicio", async function (req, res, next) {
+    res.render("terminos-servicio");
+});
+
 app.use((req, res, next) => {
     res.status(404).render('error', {
         titulo: 'Pagina no encontrada',
