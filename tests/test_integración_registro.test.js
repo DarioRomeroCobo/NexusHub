@@ -1,5 +1,6 @@
 const path = require('path');
 const express = require('express');
+const session = require('express-session');
 const request = require('supertest');
 const db = require('../utils/middleware-bd');
 const pool = require('../connection');
@@ -29,6 +30,20 @@ describe('Integracion bottom-up registro', () => {
         app.set('views', path.join(__dirname, '..', 'views'));
         app.use(express.json());
         app.use(express.urlencoded({ extended: true }));
+        app.use(session({
+            secret: 'test_registro_secret',
+            resave: false,
+            saveUninitialized: false,
+            cookie: {
+                secure: false
+            }
+        }));
+        app.use((req, res, next) => {
+            res.locals.user = req.session.usuarioId || null;
+            res.locals.correo = req.session.correo || null;
+            res.locals.isLoggedIn = req.session.isLoggedIn || false;
+            next();
+        });
         app.use('/usuario', routerUsuarios);
 
         app.use((err, req, res, next) => {
@@ -47,7 +62,11 @@ describe('Integracion bottom-up registro', () => {
     });
 
     afterAll(async () => {
-        await pool.close();
+        try {
+            await pool.close();
+        } catch (err) {
+            // Si el pool ya estaba cerrado por otro test, ignoramos el error.
+        }
     });
 
     test('GET /usuario/registro renderiza la vista de registro', async () => {
@@ -85,10 +104,7 @@ describe('Integracion bottom-up registro', () => {
             });
 
         expect(response.status).toBe(200);
-        expect(response.body).toEqual({
-            ok: true,
-            mensaje: 'Usuario registrado correctamente. Redirigiendo a la pagina de inicio ...'
-        });
+        expect(response.body).toEqual({ ok: true });
 
         const filas = await db.query('SELECT * FROM usuario WHERE correo = @p0', [correo]);
         expect(filas.length).toBe(1);

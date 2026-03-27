@@ -1,4 +1,5 @@
 "use strict";
+require("dotenv").config();
 
 const express = require("express");
 const favicon = require("serve-favicon");
@@ -15,6 +16,7 @@ const app = express();
 app.set("view engine", "ejs");
 app.set("views", path.join(__dirname, "views"));
 
+app.use(favicon(path.join(__dirname, "public", "img", "favicon.png")));
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -35,6 +37,7 @@ app.use((req, res, next) => {
     res.locals.isLoggedIn = req.session.isLoggedIn || false;
     next();
 });
+
 
 const MySqlStore = mysqlSession(session);
 
@@ -63,6 +66,14 @@ app.get("/bienvenida", verificarNoAutenticado, async function (req, res, next) {
 
 app.get("/inicio-usuario", verificarAutenticacion, async function (req, res, next) {
     res.render("inicio-usuario");
+});
+
+app.get("/politica-privacidad", async function (req, res, next) {
+    res.render("politica-privacidad");
+});
+
+app.get("/terminos-servicio", async function (req, res, next) {
+    res.render("terminos-servicio");
 });
 
 app.use((req, res, next) => {
