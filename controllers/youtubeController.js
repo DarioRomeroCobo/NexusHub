@@ -23,6 +23,12 @@ const mostrarVincularYoutube = async (req, res, next) => {
             return res.redirect('/usuario/inicio-sesion');
         }
 
+
+        //Hacer un select para obtener la información de vinculación del usuario, si existe, para mostrarla en la vista (nombre canal, foto canal, fecha vinculación, etc)
+        //Si no existe, dar un error y mostrar la vista sin información de vinculación, solo con el botón para iniciar la vinculación
+    
+
+
         res.render('vincular-youtube');
     } catch (err) {
         next(err);
@@ -115,6 +121,48 @@ const callbackYoutubeOAuth = async (req, res, next) => {
             return res.redirect('/usuario/vincular-youtube');
         }
 
+        const channelResponse = await axios.get('https://www.googleapis.com/youtube/v3/channels', {
+            params: {
+                part: 'snippet,brandingSettings',
+                mine: true
+            },
+            headers: {
+                Authorization: `Bearer ${accessToken}`
+            },
+            timeout: 15000
+        });
+
+        const firstChannel = channelResponse.data
+            && Array.isArray(channelResponse.data.items)
+            && channelResponse.data.items.length > 0
+            ? channelResponse.data.items[0]
+            : null;
+
+        const channelTitle = firstChannel
+            && firstChannel.snippet
+            && firstChannel.snippet.title
+            ? firstChannel.snippet.title
+            : null;
+
+        let channelPhotoUrl = null;
+        if (firstChannel && firstChannel.snippet && firstChannel.snippet.thumbnails) {
+            if (firstChannel.snippet.thumbnails.high) {
+                channelPhotoUrl = firstChannel.snippet.thumbnails.high.url;
+            } else if (firstChannel.snippet.thumbnails.medium) {
+                channelPhotoUrl = firstChannel.snippet.thumbnails.medium.url;
+            } else if (firstChannel.snippet.thumbnails.default) {
+                channelPhotoUrl = firstChannel.snippet.thumbnails.default.url;
+            }
+        }
+
+        if (!channelPhotoUrl
+            && firstChannel
+            && firstChannel.brandingSettings
+            && firstChannel.brandingSettings.image
+            && firstChannel.brandingSettings.image.bannerImageUrl) {
+            channelPhotoUrl = firstChannel.brandingSettings.image.bannerImageUrl;
+        }
+
         const expiresAt = Number.isFinite(expiresIn)
             ? new Date(Date.now() + expiresIn * 1000)
             : new Date(Date.now() + 3600 * 1000);
@@ -129,15 +177,19 @@ const callbackYoutubeOAuth = async (req, res, next) => {
                  UPDATE SET access_token = @p1,
                             refresh_token = COALESCE(@p2, target.refresh_token),
                             expires_at = @p3,
-                            linked_at = @p4
+                            channel_title = @p4,
+                            channel_photo_url = @p5,
+                            linked_at = @p6
              WHEN NOT MATCHED THEN
-                 INSERT (correo_usuario, access_token, refresh_token, expires_at, linked_at)
-                 VALUES (@p0, @p1, COALESCE(@p2, ''), @p3, @p4);`,
+                 INSERT (correo_usuario, access_token, refresh_token, expires_at, channel_title, channel_photo_url, linked_at)
+                 VALUES (@p0, @p1, COALESCE(@p2, ''), @p3, @p4, @p5, @p6);`,
             [
                 correoUsuario,
                 accessToken,
                 refreshToken || null,
                 expiresAt,
+                channelTitle,
+                channelPhotoUrl,
                 new Date()
             ]
         );
