@@ -54,16 +54,10 @@ app.use("/usuario", router_usuarios);
 //RENDER BASICOS
 
 app.get("/", async function (req, res, next) {
-
-
-    // Redirige según estado de autenticación
-
-
     if (res.locals.isLoggedIn) {
         return res.redirect("/inicio-usuario");
     }
-    res.redirect("/bienvenida");
-
+    return res.render("bienvenida");
 });
 
 app.get("/bienvenida", verificarNoAutenticado, async function (req, res, next) {
