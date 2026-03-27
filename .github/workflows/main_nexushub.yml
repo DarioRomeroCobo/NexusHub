@@ -6,7 +6,9 @@ name: Build and deploy Node.js app to Azure Web App - NexusHub
 on:
   push:
     branches:
-      - '**'
+      - main
+      - DEV
+      - 'DEV-NH*'
   workflow_dispatch:
 
 jobs:
@@ -42,6 +44,9 @@ jobs:
       id-token: write #This is required for requesting the JWT
       contents: read #This is required for actions/checkout
 
+    # 🔥 Solo deploy en main o DEV
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/DEV'
+
     steps:
       - name: Download artifact from build job
         uses: actions/download-artifact@v4
@@ -62,4 +67,3 @@ jobs:
           app-name: 'NexusHub'
           slot-name: 'Production'
           package: .
-          
