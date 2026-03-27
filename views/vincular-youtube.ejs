@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="es">
+<%- include("fragments/head") %>
+
+<body class="d-flex flex-column min-vh-100 bg-light">
+    <%- include("fragments/header") %>
+    <%- include("fragments/navbar") %>
+
+    <main class="flex-grow-1 py-4 py-md-5">
+        <div class="container" style="max-width: 860px;">
+            <section class="card border-0 shadow-sm rounded-4 p-4 p-md-5 bg-white">
+                <h1 class="h3 fw-bold mb-2">Vincular cuenta de YouTube</h1>
+                <p class="text-muted mb-4">
+                    Conecta tu canal para que cada usuario gestione su propio YouTube desde NexusHub.
+                </p>
+                <div class="p-3 p-md-4 rounded-4 border bg-light mb-4">
+                    <h2 class="h5 fw-bold mb-2">Conexión OAuth</h2>
+                    <p class="mb-0 text-muted">
+                        Pulsa el botón para iniciar sesión con Google y autorizar el acceso a YouTube.
+                    </p>
+                </div>
+
+                <a href="/usuario/youtube/auth" class="btn btn-gradient rounded-pill px-4 py-2 fw-semibold">
+                    Conectar con YouTube
+                </a>
+            </section>
+        </div>
+    </main>
+
+    <%- include("fragments/footer") %>
+</body>
+</html>

@@ -1,4 +1,5 @@
 "use strict";
+require("dotenv").config();
 
 const express = require("express");
 const favicon = require("serve-favicon");
@@ -37,6 +38,7 @@ app.use((req, res, next) => {
     next();
 });
 
+
 const MySqlStore = mysqlSession(session);
 
 const sessionStore = new MySqlStore({
@@ -64,6 +66,14 @@ app.get("/bienvenida", verificarNoAutenticado, async function (req, res, next) {
 
 app.get("/inicio-usuario", verificarAutenticacion, async function (req, res, next) {
     res.render("inicio-usuario");
+});
+
+app.get("/politica-privacidad", async function (req, res, next) {
+    res.render("politica-privacidad");
+});
+
+app.get("/terminos-servicio", async function (req, res, next) {
+    res.render("terminos-servicio");
 });
 
 app.use((req, res, next) => {
