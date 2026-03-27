@@ -52,12 +52,18 @@ const { verificarNoAutenticado } = require("./utils/middleware-auth");
 app.use("/usuario", router_usuarios);
 
 //RENDER BASICOS
+
 app.get("/", async function (req, res, next) {
+
+
     // Redirige según estado de autenticación
+    return res.redirect("/google55625d8c606a1391.html");
+    /*
     if (res.locals.isLoggedIn) {
         return res.redirect("/inicio-usuario");
     }
     res.redirect("/bienvenida");
+    */
 });
 
 app.get("/bienvenida", verificarNoAutenticado, async function (req, res, next) {
