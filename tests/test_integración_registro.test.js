@@ -1,5 +1,6 @@
 const path = require('path');
 const express = require('express');
+const session = require('express-session');
 const request = require('supertest');
 const db = require('../utils/middleware-bd');
 const pool = require('../connection');
@@ -29,6 +30,26 @@ describe('Integracion bottom-up registro', () => {
         app.set('views', path.join(__dirname, '..', 'views'));
         app.use(express.json());
         app.use(express.urlencoded({ extended: true }));
+
+        // Add session middleware like in app.js
+        app.use(session({
+            secret: "inicio_sesion_es_seguro",
+            resave: false,
+            saveUninitialized: false,
+            cookie: {
+                secure: false,
+                maxAge: 3600000
+            }
+        }));
+
+        // Add res.locals middleware
+        app.use((req, res, next) => {
+            res.locals.user = req.session.usuarioId || null;
+            res.locals.correo = req.session.correo || null;
+            res.locals.isLoggedIn = req.session.isLoggedIn || false;
+            next();
+        });
+
         app.use('/usuario', routerUsuarios);
 
         app.use((err, req, res, next) => {
@@ -87,7 +108,7 @@ describe('Integracion bottom-up registro', () => {
         expect(response.status).toBe(200);
         expect(response.body).toEqual({
             ok: true,
-            mensaje: 'Usuario registrado correctamente. Redirigiendo a la pagina de inicio ...'
+            mensaje: 'Usuario registrado correctamente. Redirigiendo a la pagina de inicio de sesión ...'
         });
 
         const filas = await db.query('SELECT * FROM usuario WHERE correo = @p0', [correo]);
