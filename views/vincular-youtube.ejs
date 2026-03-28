@@ -13,12 +13,15 @@
                 <p class="text-muted mb-4">
                     Conecta tu canal para que cada usuario gestione su propio YouTube desde NexusHub.
                 </p>
+
                 <div class="p-3 p-md-4 rounded-4 border bg-light mb-4">
                     <h2 class="h5 fw-bold mb-2">Conexión OAuth</h2>
                     <p class="mb-0 text-muted">
                         Pulsa el botón para iniciar sesión con Google y autorizar el acceso a YouTube.
                     </p>
                 </div>
+
+                <div id="vincular-youtube-feedback" class="alert mt-3 mb-3 d-none" role="alert"></div>
 
                 <a href="/usuario/youtube/auth" class="btn btn-gradient rounded-pill px-4 py-2 fw-semibold">
                     Conectar con YouTube
@@ -28,5 +31,8 @@
     </main>
 
     <%- include("fragments/footer") %>
+
+    <script src="/js/scripts-vincular-youtube.js"></script>
+
 </body>
 </html>

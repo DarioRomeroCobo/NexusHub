@@ -43,7 +43,7 @@ const iniciarVinculacionYoutube = async (req, res, next) => {
 
         const { clientId, redirectUri } = getYoutubeOAuthConfig(req);
         if (!clientId) {
-            return res.redirect('/usuario/vincular-youtube');
+           throw new Error("Error de vinculación");
         }
 
         const state = crypto.randomBytes(24).toString('hex');
@@ -67,13 +67,14 @@ const iniciarVinculacionYoutube = async (req, res, next) => {
             state
         });
 
-        return res.redirect(`https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`);
+        const redirect = res.redirect(`https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`);
+
+        return redirect;
     } catch (err) {
-        // next(err);
-        return {
-            ok: false,
-            error: "Ha habido un error durante la vinculación: " + err
-        };
+        const err_str = (err ? err.message : "Ha habido un error no identificado de vinculación.");
+
+        const errorCodificado = encodeURIComponent(err_str);
+        return res.redirect(`/usuario/vincular-youtube?error=${errorCodificado}`);
     }
 };
 
@@ -88,16 +89,16 @@ const callbackYoutubeOAuth = async (req, res, next) => {
         req.session.youtubeOAuthState = null;
 
         if (!code) {
-            return res.redirect('/usuario/vincular-youtube');
+            throw new Error("Error de sesión inesperado.");
         }
 
         if (!state || !expectedState || state !== expectedState) {
-            return res.redirect('/usuario/vincular-youtube');
+            throw new Error("Error de sesión inesperado.");
         }
 
         const { clientId, clientSecret, redirectUri } = getYoutubeOAuthConfig(req);
         if (!clientId || !clientSecret) {
-            return res.redirect('/usuario/vincular-youtube');
+            throw new Error("Error de vinculación.");
         }
 
         const tokenResponse = await axios.post(
@@ -122,7 +123,7 @@ const callbackYoutubeOAuth = async (req, res, next) => {
         const expiresIn = Number(tokenResponse.data && tokenResponse.data.expires_in);
 
         if (!accessToken) {
-            return res.redirect('/usuario/vincular-youtube');
+            throw new Error("No se ha podido completar la vinculación");
         }
 
         const channelResponse = await axios.get('https://www.googleapis.com/youtube/v3/channels', {
@@ -200,7 +201,10 @@ const callbackYoutubeOAuth = async (req, res, next) => {
 
         return res.redirect('/usuario/vincular-youtube');
     } catch (err) {
-        next(err);
+        const err_str = (err ? err.message : "Ha habido un error no identificado de vinculación.");
+
+        const errorCodificado = encodeURIComponent(err_str);
+        return res.redirect(`/usuario/vincular-youtube?error=${errorCodificado}`);
     }
 };
 
