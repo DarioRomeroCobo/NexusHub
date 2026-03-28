@@ -182,6 +182,7 @@ const validarSesion = async (req, res, next) => {
 
     } catch (err) {
         console.error("Error en el login:", err);
+        return res.status(500).json({ ok: false, error: "Error interno del servidor" });
     }
 };
 const cargarVideo = async (req, res, next) => {
