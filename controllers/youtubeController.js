@@ -341,11 +341,11 @@ const desvincularYoutube = async (req, res, next) => {
     } catch (err) {
         next(err);
     }
-};
+};*/
 
 module.exports = {
     mostrarVincularYoutube,
     iniciarVinculacionYoutube,
     callbackYoutubeOAuth,
     desvincularYoutube
-};*/
+};
