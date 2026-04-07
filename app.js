@@ -9,6 +9,7 @@ const multer = require("multer");
 const mysqlSession = require("express-mysql-session");
 const session = require("express-session");
 const pool = require("./connection.js");
+const db = require("./utils/middleware-bd"); // Importamos db para la consulta del tick
 const { verificarAutenticacion } = require("./utils/middleware-auth");
 
 const app = express();
@@ -31,10 +32,30 @@ app.use(session({
     }
 }));
 
-app.use((req, res, next) => {
+// MIDDLEWARE DE SESIÓN ACTUALIZADO PARA EL TICK DE YOUTUBE
+app.use(async (req, res, next) => {
     res.locals.user = req.session.usuarioId || null;
     res.locals.correo = req.session.correo || null;
     res.locals.isLoggedIn = req.session.isLoggedIn || false;
+    res.locals.youtubeVinculado = false; // Por defecto no está vinculado
+
+    // Si el usuario ha iniciado sesión, comprobamos si tiene Youtube vinculado
+    if (res.locals.isLoggedIn && res.locals.correo) {
+        try {
+            const correoUsuario = String(res.locals.correo).trim().toLowerCase();
+            const resultado = await db.query(
+                "SELECT 1 FROM VinculacionYoutube WHERE correo_usuario = @p0",
+                [correoUsuario]
+            );
+            
+            // Si hay resultados, activamos el flag para la Navbar
+            if (resultado && resultado.length > 0) {
+                res.locals.youtubeVinculado = true;
+            }
+        } catch (error) {
+            console.error("Error al comprobar vinculación en middleware:", error);
+        }
+    }
     next();
 });
 
