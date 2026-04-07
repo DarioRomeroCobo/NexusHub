@@ -45,7 +45,7 @@ jobs:
       id-token: write #This is required for requesting the JWT
       contents: read #This is required for actions/checkout
 
-    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/DEV'
+    if: github.ref == 'refs/heads/main' 
 
     steps:
       - name: Download artifact from build job
