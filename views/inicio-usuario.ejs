@@ -58,15 +58,24 @@
                 <div class="row g-4">
 
                     <div class="col-md-4">
-                        <article class="h-100 p-4 border rounded-4 shadow-sm bg-white hover-card">
-                            <h2 class="h4 mb-3 text-primary">Crear publicación</h2>
-                            <p class="text-muted">
-                                Redacta y programa contenido para tus redes sociales fácilmente.
-                            </p>
-                            <a href="/publicaciones/crear" class="btn btn-sm btn-primary rounded-pill">
-                                Crear
-                            </a>
-                        </article>
+    <article class="h-100 p-4 border rounded-4 shadow-sm bg-white hover-card">
+        <h2 class="h4 mb-3 text-primary">Gestionar cuentas</h2>
+        <p class="text-muted">
+            Conecta y administra tus redes sociales en un solo lugar.
+        </p>
+        
+        <% if (locals.youtubeVinculado) { %>
+            <div class="d-flex align-items-center gap-2">
+                <a href="/usuario/vincular-youtube" class="btn btn-sm btn-success rounded-pill">
+                    <i class="bi bi-check-circle-fill"></i> YouTube Vinculado
+                </a>
+            </div>
+                <% } else { %>
+                    <a href="/usuario/vincular-youtube" class="btn btn-sm btn-primary rounded-pill">
+                Vincular YouTube
+                    </a>
+                    <% } %>
+                    </article>
                     </div>
 
                     <div class="col-md-4">

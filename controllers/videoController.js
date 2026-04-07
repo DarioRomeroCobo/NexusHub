@@ -65,6 +65,20 @@ const cargarVideo = async (req, res, next) => {
             });
         }
 
+        const videoExistente = await db.query(
+            `SELECT * FROM VideosUsuario
+             WHERE correo_usuario = @p0 AND nombre_video = @p1`,
+            [correoUsuario, req.file.originalname]
+        );
+
+        const filasVideoExistente = videoExistente.recordset || videoExistente;
+        if (filasVideoExistente.length > 0) {
+            return res.status(400).json({
+                ok: false,
+                error: 'Ya tienes un video con ese nombre'
+            });
+        }
+
         const usuarioId = req.session.usuarioId;
         const timestamp = Date.now();
         const nombreArchivoSeguro = req.file.originalname.replace(/[^a-zA-Z0-9._-]/g, '_');

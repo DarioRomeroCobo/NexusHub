@@ -23,6 +23,34 @@ const mostrarVincularYoutube = async (req, res, next) => {
             return res.redirect('/usuario/inicio-sesion');
         }
 
+        const correoUsuario = String(req.session.correo).trim().toLowerCase();
+        
+        const resultado = await db.query(
+            `SELECT channel_title, channel_photo_url, linked_at 
+             FROM VinculacionYoutube 
+             WHERE correo_usuario = @p0`,
+            [correoUsuario]
+        );
+
+        const vinculacion = resultado && resultado.length > 0 ? resultado[0] : null;
+
+        res.render('vincular-youtube', { 
+            vinculacion,
+            error: req.query.error || null // Por si quieres pasar errores por URL
+        });
+
+    } catch (err) {
+        console.error("Error al mostrar vinculación Youtube:", err);
+        next(err);
+    }
+};
+
+/*const mostrarVincularYoutube = async (req, res, next) => {
+    try {
+        if (req.session.isLoggedIn !== true || !req.session.correo) {
+            return res.redirect('/usuario/inicio-sesion');
+        }
+
 
         //Hacer un select para obtener la información de vinculación del usuario, si existe, para mostrarla en la vista (nombre canal, foto canal, fecha vinculación, etc)
         //Si no existe, dar un error y mostrar la vista sin información de vinculación, solo con el botón para iniciar la vinculación
@@ -33,7 +61,7 @@ const mostrarVincularYoutube = async (req, res, next) => {
     } catch (err) {
         next(err);
     }
-};
+};*/
 
 const iniciarVinculacionYoutube = async (req, res, next) => {
     try {
@@ -74,6 +102,102 @@ const iniciarVinculacionYoutube = async (req, res, next) => {
 };
 
 const callbackYoutubeOAuth = async (req, res, next) => {
+    try {
+        if (req.session.isLoggedIn !== true || !req.session.correo) {
+            return res.redirect('/usuario/inicio-sesion');
+        }
+
+        const { code, state } = req.query;
+        const expectedState = req.session.youtubeOAuthState;
+        req.session.youtubeOAuthState = null;
+
+        if (!code || !state || !expectedState || state !== expectedState) {
+            return res.redirect('/usuario/vincular-youtube');
+        }
+
+        const { clientId, clientSecret, redirectUri } = getYoutubeOAuthConfig(req);
+        
+        const tokenResponse = await axios.post(
+            'https://oauth2.googleapis.com/token',
+            new URLSearchParams({
+                code: String(code),
+                client_id: clientId,
+                client_secret: clientSecret,
+                redirect_uri: redirectUri,
+                grant_type: 'authorization_code'
+            }).toString(),
+            { headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, timeout: 15000 }
+        );
+
+        const accessToken = tokenResponse.data?.access_token;
+        const refreshToken = tokenResponse.data?.refresh_token;
+        const expiresIn = Number(tokenResponse.data?.expires_in);
+
+        if (!accessToken) return res.redirect('/usuario/vincular-youtube');
+
+        const channelResponse = await axios.get('https://www.googleapis.com/youtube/v3/channels', {
+            params: { part: 'snippet,brandingSettings', mine: true },
+            headers: { Authorization: `Bearer ${accessToken}` },
+            timeout: 15000
+        });
+
+        const firstChannel = channelResponse.data?.items?.[0];
+        const channelTitle = firstChannel?.snippet?.title || "Canal de YouTube";
+        const channelPhotoUrl = firstChannel?.snippet?.thumbnails?.high?.url || null;
+
+        const expiresAt = new Date(Date.now() + (expiresIn || 3600) * 1000);
+        const correoUsuario = String(req.session.correo).trim().toLowerCase();
+        
+        await db.query(
+            `MERGE VinculacionYoutube AS target
+             USING (SELECT @p0 AS correo_usuario) AS source
+             ON target.correo_usuario = source.correo_usuario
+             WHEN MATCHED THEN
+                 UPDATE SET access_token = @p1, refresh_token = COALESCE(@p2, target.refresh_token),
+                            expires_at = @p3, channel_title = @p4, channel_photo_url = @p5, linked_at = @p6
+             WHEN NOT MATCHED THEN
+                 INSERT (correo_usuario, access_token, refresh_token, expires_at, channel_title, channel_photo_url, linked_at)
+                 VALUES (@p0, @p1, COALESCE(@p2, ''), @p3, @p4, @p5, @p6);`,
+            [correoUsuario, accessToken, refreshToken || null, expiresAt, channelTitle, channelPhotoUrl, new Date()]
+        );
+
+        // --- CLAVE PARA QUE FUNCIONE EL BOTÓN ---
+        req.session.youtubeVinculado = true; 
+        req.session.youtubeChannelTitle = channelTitle; // Guardamos el nombre para mostrarlo en el botón
+
+        req.session.save((err) => {
+            if (err) return next(err);
+            return res.redirect('/usuario/vincular-youtube');
+        });
+
+    } catch (err) {
+        next(err);
+    }
+};
+
+const desvincularYoutube = async (req, res, next) => {
+    try {
+        if (req.session.isLoggedIn !== true || !req.session.correo) {
+            return res.redirect('/usuario/inicio-sesion');
+        }
+
+        const correoUsuario = String(req.session.correo).trim().toLowerCase();
+        await db.query('DELETE FROM VinculacionYoutube WHERE correo_usuario = @p0', [correoUsuario]);
+
+        // --- LIMPIAMOS LA SESIÓN ---
+        req.session.youtubeVinculado = false;
+        req.session.youtubeChannelTitle = null;
+
+        req.session.save((err) => {
+            if (err) return next(err);
+            return res.redirect('/usuario/vincular-youtube');
+        });
+    } catch (err) {
+        next(err);
+    }
+};
+
+/*const callbackYoutubeOAuth = async (req, res, next) => {
     try {
         if (req.session.isLoggedIn !== true || !req.session.correo) {
             return res.redirect('/usuario/inicio-sesion');
@@ -193,14 +317,15 @@ const callbackYoutubeOAuth = async (req, res, next) => {
                 new Date()
             ]
         );
+        req.session.youtubeVinculado = true; 
 
         return res.redirect('/usuario/vincular-youtube');
     } catch (err) {
         next(err);
     }
-};
+};*/
 
-const desvincularYoutube = async (req, res, next) => {
+/*const desvincularYoutube = async (req, res, next) => {
     try {
         if (req.session.isLoggedIn !== true || !req.session.correo) {
             return res.redirect('/usuario/inicio-sesion');
@@ -216,7 +341,7 @@ const desvincularYoutube = async (req, res, next) => {
     } catch (err) {
         next(err);
     }
-};
+};*/
 
 module.exports = {
     mostrarVincularYoutube,
