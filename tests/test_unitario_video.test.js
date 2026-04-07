@@ -12,7 +12,7 @@ jest.mock('../utils/middleware-bd', () => ({
     query: jest.fn()
 }));
 
-const { cargarVideo } = require('../controllers/usuarioController');
+const { cargarVideo } = require('../controllers/videoController');
 const db = require('../utils/middleware-bd');
 
 describe('Pruebas Unitarias - Subida de Video', () => {
