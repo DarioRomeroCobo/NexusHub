@@ -8,7 +8,7 @@ jest.mock('bcrypt', () => ({
 
 const bcrypt = require('bcrypt');
 const db = require('../utils/middleware-bd');
-const { mostrarRegistro, registrarUsuario } = require('../controllers/usuarioController');
+const { mostrarRegistro, registrarUsuario } = require('../controllers/registroController');
 
 const mockRes = () => {
     const res = {};
@@ -18,7 +18,12 @@ const mockRes = () => {
     return res;
 };
 
-const mockReq = (body = {}) => ({ body });
+const mockReq = (body = {}) => ({
+    body,
+    session: {
+        save: jest.fn((callback) => callback(null))
+    }
+});
 const mockNext = () => jest.fn();
 
 beforeEach(() => {
@@ -165,7 +170,8 @@ describe('registrarUsuario - flujo correcto', () => {
         bcrypt.hash.mockResolvedValue('hash_ok');
         db.query
             .mockResolvedValueOnce([])
-            .mockResolvedValueOnce({});
+            .mockResolvedValueOnce({})
+            .mockResolvedValueOnce([{ id_usuario: 1, correo: 'test@correo.com' }]);
 
         await registrarUsuario(req, res, next);
 

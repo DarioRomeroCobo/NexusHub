@@ -68,7 +68,11 @@ describe('Integracion bottom-up registro', () => {
     });
 
     afterAll(async () => {
-        await pool.close();
+        try {
+            await pool.close();
+        } catch (err) {
+            // Si el pool ya estaba cerrado por otro test, ignoramos el error.
+        }
     });
 
     test('GET /usuario/registro renderiza la vista de registro', async () => {

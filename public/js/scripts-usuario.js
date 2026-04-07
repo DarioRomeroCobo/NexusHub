@@ -70,22 +70,17 @@ async function manejadorRegistro(e) {
 
         const json = await res.json();
 
-        if (!json.ok) {
+
+        if (json.ok) {
+            window.location.href = "/inicio-usuario";
+        } else {
             registroFeedback.querySelector("p").textContent = json.error;
             registroFeedback.classList.remove("d-none");
             registroFeedback.classList.add("alert-danger");
-          
-            return;
         }
 
      
-        registroFeedback.querySelector("p").textContent = json.mensaje;
-        registroFeedback.classList.remove("d-none");
-        registroFeedback.classList.add("alert-success");
 
-        setTimeout(() => {
-            window.location.replace("/usuario/inicio-sesion");
-        }, 2000);
 
     } catch (err) {
         console.error("Error registro:", err);
