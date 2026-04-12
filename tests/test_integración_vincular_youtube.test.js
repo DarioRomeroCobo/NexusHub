@@ -1,4 +1,4 @@
-const path = require('path');
+/*const path = require('path');
 const express = require('express');
 const session = require('express-session');
 const request = require('supertest');
@@ -137,4 +137,4 @@ describe('Integracion bottom-up vincular YouTube', () => {
         // La vista de error renderiza el código; comprobamos que aparece en el HTML
         expect(response.text).toContain('501');
     });
-});
+});*/

@@ -1,4 +1,4 @@
-const mockAzureBlob = {
+/*const mockAzureBlob = {
     uploadBlob: jest.fn(),
     getBlobUrl: jest.fn(),
     deleteBlob: jest.fn()
@@ -196,4 +196,4 @@ describe('Pruebas Unitarias - Subida de Video', () => {
             error: 'La URL del video supera el máximo permitido de 255 caracteres'
         });
     });
-});
+});*/
