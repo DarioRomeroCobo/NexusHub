@@ -45,6 +45,10 @@ const cargarVideo = async (req, res, next) => {
             return res.status(400).json({ ok: false, error: 'No se subió ningún archivo' });
         }
 
+        if (!req.file.originalname || req.file.originalname.trim() === "") {
+            return res.status(400).json({ ok: false, error: 'El nombre del video es obligatorio' });
+        }
+
         if (!Number.isFinite(duracionSegundos) || duracionSegundos < 0) {
             return res.status(400).json({ ok: false, error: 'Duración de video no válida' });
         }
