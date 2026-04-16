@@ -82,32 +82,24 @@ describe('Integracion bottom-up vincular YouTube', () => {
     // Tests
     // ──────────────────────────────────────────────────────────────────────────
 
-    test('GET /usuario/vincular-youtube devuelve 501 cuando la funcionalidad no está implementada', async () => {
+    test('GET /usuario/vincular-youtube redirige a login cuando no hay sesión', async () => {
         const response = await request(app).get('/usuario/vincular-youtube');
 
-        expect(response.status).toBe(501);
+        expect(response.status).toBe(302);
+        expect(response.headers.location).toBe('/usuario/inicio-sesion');
     });
 
-    test('GET /usuario/vincular-youtube responde con HTML (renderiza una vista)', async () => {
+    test('GET /usuario/vincular-youtube devuelve respuesta de redirección sin sesión', async () => {
         const response = await request(app).get('/usuario/vincular-youtube');
 
-        expect(response.headers['content-type']).toMatch(/html/);
+        expect(response.headers['content-type']).toMatch(/text\/plain/);
+        expect(response.text).toMatch(/redirecting to \/usuario\/inicio-sesion/i);
     });
 
-    test('GET /usuario/vincular-youtube indica que la integración está en desarrollo', async () => {
+    test('GET /usuario/vincular-youtube también redirige sin autenticación', async () => {
         const response = await request(app).get('/usuario/vincular-youtube');
 
-        // El controlador usa el mensaje "La vinculación con YouTube está en desarrollo"
-        expect(response.text).toMatch(/youtube/i);
-        expect(response.text).toMatch(/desarrollo|disponible/i);
-    });
-
-    test('GET /usuario/vincular-youtube es accesible sin autenticación (endpoint público)', async () => {
-        // La ruta no usa verificarAutenticacion, por lo que cualquier usuario debe recibirla
-        const response = await request(app).get('/usuario/vincular-youtube');
-
-        // No debe redirigir al login (302) ni devolver 401/403
-        expect(response.status).not.toBe(302);
+        expect(response.status).toBe(302);
         expect(response.status).not.toBe(401);
         expect(response.status).not.toBe(403);
     });
@@ -127,14 +119,26 @@ describe('Integracion bottom-up vincular YouTube', () => {
         // Acceder a vincular-youtube con sesión activa
         const response = await agent.get('/usuario/vincular-youtube');
 
-        expect(response.status).toBe(501);
+        expect(response.status).toBe(200);
+        expect(response.headers['content-type']).toMatch(/html/);
         expect(response.text).toMatch(/youtube/i);
     });
 
-    test('GET /usuario/vincular-youtube devuelve código de error 501 en el cuerpo HTML', async () => {
-        const response = await request(app).get('/usuario/vincular-youtube');
+    test('GET /usuario/vincular-youtube con sesión muestra UI de conexión OAuth', async () => {
+        const correo = generarCorreoUnico();
+        await crearUsuario(correo, 'Valida@123');
 
-        // La vista de error renderiza el código; comprobamos que aparece en el HTML
-        expect(response.text).toContain('501');
+        const agent = request.agent(app);
+        const loginResponse = await agent
+            .post('/usuario/api/login')
+            .send({ correo, password: 'Valida@123' });
+
+        expect(loginResponse.status).toBe(200);
+
+        const response = await agent.get('/usuario/vincular-youtube');
+
+        expect(response.status).toBe(200);
+        expect(response.text).toMatch(/conectar con youtube/i);
+        expect(response.text).toMatch(/oauth/i);
     });
 });
