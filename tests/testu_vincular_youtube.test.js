@@ -17,8 +17,7 @@ const db = require('../utils/middleware-bd');
 const {
     mostrarVincularYoutube,
     iniciarVinculacionYoutube,
-    callbackYoutubeOAuth,
-    desvincularYoutube
+    callbackYoutubeOAuth
 } = require('../controllers/youtubeController');
 
 const mockRes = () => {
