@@ -7,17 +7,44 @@
             </a>
             <% } %>
 
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarBar"
-                    aria-controls="navbarBar" aria-expanded="false" aria-label="Abrir navegación">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
+            <% if (!locals.isLoggedIn) { %>
+                <a href="/usuario/inicio-sesion"
+                    class="btn btn-gradient px-4 py-2 rounded-pill fw-semibold me-2"
+                    aria-label="Inicio de sesión" title="Ir a la página de inicio de sesión">
+                    Inicio de sesión
+                </a>
 
-                <div class="collapse navbar-collapse justify-content-end mb-2" id="navbarBar">
+                <a href="/usuario/registro" class="btn btn-gradient px-4 py-2 rounded-pill fw-semibold"
+                    aria-label="Registro" title="Ir a la página de registro">
+                    Registro
+                </a>
 
-                    <a href="/usuario/ver-usuarios"
-                        class="btn btn-outline-primary px-4 py-2 rounded-pill fw-semibold me-2"
-                        aria-label="Ver usuarios registrados">
-                        Ver usuarios registrados
+            <% } else { %>
+                <a href="/usuario/subir-video"
+                    class="btn btn-gradient px-4 py-2 rounded-pill fw-semibold me-2"
+                    aria-label="Subir video" title="Ir a la página de subir video">
+                    Subir video
+                </a>
+
+                <a href="/usuario/publicar-video"
+                    class="btn btn-gradient px-4 py-2 rounded-pill fw-semibold me-2"
+                    aria-label="Publicar video" title="Ir a la página de publicar video">
+                    Publicar video
+                </a>
+
+                <% if (locals.youtubeVinculado) { %>
+                    <a href="/usuario/vincular-youtube" 
+                       class="btn btn-success px-4 py-2 rounded-pill fw-semibold me-2"
+                       aria-label="Youtube vinculado" 
+                       title="Tu cuenta de Youtube está vinculada">
+                       ✓ Youtube vinculado
+                    </a>
+                <% } else { %>
+                    <a href="/usuario/vincular-youtube" 
+                       class="btn btn-gradient px-4 py-2 rounded-pill fw-semibold me-2"
+                       aria-label="Vincular Youtube" 
+                       title="Vincular mi cuenta de Youtube">
+                       Vincular Youtube
                     </a>
 
                     <% if (!locals.isLoggedIn) { %>
