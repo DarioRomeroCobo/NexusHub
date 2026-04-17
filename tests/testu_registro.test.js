@@ -177,11 +177,7 @@ describe('registrarUsuario - flujo correcto', () => {
 
         expect(db.query).toHaveBeenNthCalledWith(1, 'SELECT * FROM usuario WHERE correo = @p0', ['test@correo.com']);
         expect(db.query).toHaveBeenNthCalledWith(2, 'INSERT INTO usuario (correo, contraseña) VALUES (@p0, @p1)', ['test@correo.com', 'hash_ok']);
-        expect(db.query).toHaveBeenNthCalledWith(3, 'SELECT * FROM usuario WHERE correo = @p0', ['test@correo.com']);
-        expect(res.json).toHaveBeenCalledWith({ ok: true });
-        expect(req.session.usuarioId).toBe(1);
-        expect(req.session.correo).toBe('test@correo.com');
-        expect(req.session.isLoggedIn).toBe(true);
+        expect(res.json).toHaveBeenCalledWith({ ok: true, mensaje: 'Usuario registrado correctamente. Redirigiendo a la pagina de inicio de sesión ...' });
         expect(next).not.toHaveBeenCalled();
     });
 });
