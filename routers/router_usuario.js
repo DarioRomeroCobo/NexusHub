@@ -29,6 +29,10 @@ const {
     subirVideoYoutube
 } = require('../controllers/youtubeController');
 
+const {
+    mostrarEstadisticasPublicaciones
+} = require('../controllers/estadisticasController');
+
 const { verificarAutenticacion, verificarNoAutenticado } = require("../utils/middleware-auth");
 const upload = multer({ storage: multer.memoryStorage() });
 
@@ -49,4 +53,6 @@ router.get("/youtube/auth", verificarAutenticacion, iniciarVinculacionYoutube);
 router.get("/youtube/callback", verificarAutenticacion, callbackYoutubeOAuth);
 router.post("/youtube/desvincular", verificarAutenticacion, desvincularYoutube);
 router.post("/api/youtube/subir-video", verificarAutenticacion, subirVideoYoutube);
+router.get("/estadisticas-publicaciones", verificarAutenticacion, mostrarEstadisticasPublicaciones);
+
 module.exports = router;
