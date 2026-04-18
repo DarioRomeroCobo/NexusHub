@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="es">
+<%- include("fragments/head") %>
+
+<body class="d-flex flex-column min-vh-100 bg-light">
+    <%- include("fragments/header") %>
+    <%- include("fragments/navbar") %>
+
+
+    
+    <main class="flex-grow-1 py-4 py-md-5">
+        <div class="container">
+
+            <section class="card border-0 shadow-sm rounded-4 p-4 p-md-5 bg-white mb-4">
+                <h1 class="h3 fw-bold mb-2">
+                    Estadísticas globales de tus redes sociales
+                </h1>
+                <p class="text-muted mb-0">
+                    Consulta seguidores, visualizaciones, me gusta y comentarios.
+                </p>
+            </section>
+
+            <% const redesSafe = (typeof redes !== 'undefined' && redes) ? redes : []; %>
+            <% const errorSafe = (typeof error !== 'undefined') ? error : null; %>
+
+            <% if (errorSafe) { %>
+
+                <section class="alert alert-warning rounded-4 shadow-sm">
+                    <h2 class="h6 fw-bold mb-2">
+                        No se pudieron cargar las estadísticas
+                    </h2>
+                    <p class="mb-0"><%= errorSafe %></p>
+                </section>
+
+            <% } else if (redesSafe.length === 0) { %>
+
+                <section class="card border-0 shadow-sm rounded-4 p-4 bg-white text-center">
+                    <h2 class="h5 fw-bold mb-2">
+                        No tienes redes sociales vinculadas
+                    </h2>
+
+                    <p class="text-muted mb-3">
+                        Vincula una red social para ver tus estadísticas.
+                    </p>
+
+                    <a href="/usuario/vincular-youtube"
+                        class="btn btn-primary rounded-pill">
+                        Vincular red social
+                    </a>
+                </section>
+
+            <% } else { %>
+
+                <section class="d-flex flex-column gap-3">
+
+                    <% redesSafe.forEach(function(red) { %>
+
+                        <article class="card border-0 shadow-sm rounded-4 p-4 bg-white">
+
+                            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+                                <div>
+                                    <h2 class="h5 fw-bold mb-0">
+                                        <%= red.plataforma || 'Red social' %>
+                                    </h2>
+                                    <span class="text-muted small">
+                                        @<%= red.usuario || 'usuario' %>
+                                    </span>
+                                </div>
+
+                                <span class="badge text-bg-light border">
+                                    👥 <%= red.seguidores ? red.seguidores.toLocaleString('es-ES') : 0 %>
+                                </span>
+                            </div>
+
+                            <div class="row text-center g-3">
+
+                                <div class="col-6 col-md-3">
+                                    <div class="p-3 border rounded-3">
+                                        <div class="small text-muted">Seguidores</div>
+                                        <div class="fw-bold fs-5">
+                                            <%= red.seguidores ? red.seguidores.toLocaleString('es-ES') : 0 %>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-6 col-md-3">
+                                    <div class="p-3 border rounded-3">
+                                        <div class="small text-muted">Visualizaciones</div>
+                                        <div class="fw-bold fs-5">
+                                            <%= red.vistas ? red.vistas.toLocaleString('es-ES') : 0 %>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-6 col-md-3">
+                                    <div class="p-3 border rounded-3">
+                                        <div class="small text-muted">Me gusta</div>
+                                        <div class="fw-bold fs-5">
+                                            <%= red.likes ? red.likes.toLocaleString('es-ES') : 0 %>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-6 col-md-3">
+                                    <div class="p-3 border rounded-3">
+                                        <div class="small text-muted">Comentarios</div>
+                                        <div class="fw-bold fs-5">
+                                            <%= red.comentarios ? red.comentarios.toLocaleString('es-ES') : 0 %>
+                                        </div>
+                                    </div>
+                                </div>
+
+                            </div>
+
+                        </article>
+
+                    <% }) %>
+
+                </section>
+
+            <% } %>
+
+        </div>
+    </main>
+
+    <%- include("fragments/footer") %>
+</body>
+</html>

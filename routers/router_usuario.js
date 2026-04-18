@@ -16,6 +16,8 @@ const {
 
 const { getUsuarios } = require('../controllers/userController');
 
+const { mostrarEstadisticas } = require('../controllers/estadisticasRedController');
+
 const {
     mostrarSubirVideo,
     cargarVideo
@@ -47,4 +49,5 @@ router.get("/vincular-youtube", verificarAutenticacion, mostrarVincularYoutube);
 router.get("/youtube/auth", verificarAutenticacion, iniciarVinculacionYoutube);
 router.get("/youtube/callback", verificarAutenticacion, callbackYoutubeOAuth);
 router.post("/youtube/desvincular", verificarAutenticacion, desvincularYoutube);
+router.get("/ver-estadisticas", verificarAutenticacion, mostrarEstadisticas);
 module.exports = router;
