@@ -82,59 +82,65 @@ describe('Integracion bottom-up vincular YouTube', () => {
     // Tests
     // ──────────────────────────────────────────────────────────────────────────
 
-    test('GET /usuario/vincular-youtube devuelve 501 cuando la funcionalidad no está implementada', async () => {
+    test('GET /usuario/vincular-youtube redirige al inicio de sesión cuando el usuario no está autenticado', async () => {
         const response = await request(app).get('/usuario/vincular-youtube');
 
-        expect(response.status).toBe(501);
+        expect(response.status).toBe(302);
+        expect(response.headers.location).toBe('/usuario/inicio-sesion');
     });
 
-    test('GET /usuario/vincular-youtube responde con HTML (renderiza una vista)', async () => {
-        const response = await request(app).get('/usuario/vincular-youtube');
-
-        expect(response.headers['content-type']).toMatch(/html/);
-    });
-
-    test('GET /usuario/vincular-youtube indica que la integración está en desarrollo', async () => {
-        const response = await request(app).get('/usuario/vincular-youtube');
-
-        // El controlador usa el mensaje "La vinculación con YouTube está en desarrollo"
-        expect(response.text).toMatch(/youtube/i);
-        expect(response.text).toMatch(/desarrollo|disponible/i);
-    });
-
-    test('GET /usuario/vincular-youtube es accesible sin autenticación (endpoint público)', async () => {
-        // La ruta no usa verificarAutenticacion, por lo que cualquier usuario debe recibirla
-        const response = await request(app).get('/usuario/vincular-youtube');
-
-        // No debe redirigir al login (302) ni devolver 401/403
-        expect(response.status).not.toBe(302);
-        expect(response.status).not.toBe(401);
-        expect(response.status).not.toBe(403);
-    });
-
-    test('GET /usuario/vincular-youtube también es accesible con sesión activa', async () => {
+    test('GET /usuario/vincular-youtube responde con HTML cuando el usuario está autenticado', async () => {
         const correo = generarCorreoUnico();
         await crearUsuario(correo, 'Valida@123');
 
         const agent = request.agent(app);
-
-        // Iniciar sesión primero
         const loginResponse = await agent
             .post('/usuario/api/login')
             .send({ correo, password: 'Valida@123' });
         expect(loginResponse.status).toBe(200);
 
-        // Acceder a vincular-youtube con sesión activa
         const response = await agent.get('/usuario/vincular-youtube');
 
-        expect(response.status).toBe(501);
-        expect(response.text).toMatch(/youtube/i);
+        expect(response.status).toBe(200);
+        expect(response.headers['content-type']).toMatch(/html/);
     });
 
-    test('GET /usuario/vincular-youtube devuelve código de error 501 en el cuerpo HTML', async () => {
+    test('GET /usuario/vincular-youtube muestra el contenido de YouTube con sesión activa', async () => {
+        const correo = generarCorreoUnico();
+        await crearUsuario(correo, 'Valida@123');
+
+        const agent = request.agent(app);
+        const loginResponse = await agent
+            .post('/usuario/api/login')
+            .send({ correo, password: 'Valida@123' });
+        expect(loginResponse.status).toBe(200);
+
+        const response = await agent.get('/usuario/vincular-youtube');
+
+        expect(response.text).toMatch(/Vincular cuenta de YouTube/i);
+        expect(response.text).toMatch(/Conectar con YouTube/i);
+    });
+
+    test('GET /usuario/vincular-youtube no es accesible sin autenticación', async () => {
         const response = await request(app).get('/usuario/vincular-youtube');
 
-        // La vista de error renderiza el código; comprobamos que aparece en el HTML
-        expect(response.text).toContain('501');
+        expect(response.status).toBe(302);
+        expect(response.headers.location).toBe('/usuario/inicio-sesion');
+    });
+
+    test('GET /usuario/vincular-youtube devuelve HTML válido con sesión activa', async () => {
+        const correo = generarCorreoUnico();
+        await crearUsuario(correo, 'Valida@123');
+
+        const agent = request.agent(app);
+        const loginResponse = await agent
+            .post('/usuario/api/login')
+            .send({ correo, password: 'Valida@123' });
+        expect(loginResponse.status).toBe(200);
+
+        const response = await agent.get('/usuario/vincular-youtube');
+
+        expect(response.status).toBe(200);
+        expect(response.text).toContain('Vincular cuenta de YouTube');
     });
 });
