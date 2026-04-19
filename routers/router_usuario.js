@@ -21,7 +21,6 @@ const {
     cargarVideo,
     mostrarGaleriaPublicar,
     mostrarPublicacionVideo,
-    cargarVideo,
     publicarVideo
 } = require('../controllers/videoController');
 
