@@ -33,12 +33,13 @@ const mostrarSubirVideo = async (req, res, next) => {
 };
 
 const mostrarPublicacionVideo = async (req, res, next) => {
-    try {
-        res.render('publicacion-video');
-    } catch (err) {
-        next(err);
-    }
+    const videoUrl = req.query.videoUrl; 
+    if (!videoUrl) return res.redirect('/usuario/publicar-video');
+
+    res.render('publicacion-video', { videoUrl }); 
 };
+
+
 
 const publicarVideo = async (req, res, next) => {
     try {
@@ -187,6 +188,5 @@ module.exports = {
     cargarVideo,
     mostrarGaleriaPublicar,
     mostrarPublicacionVideo,
-    cargarVideo,
     publicarVideo
 };

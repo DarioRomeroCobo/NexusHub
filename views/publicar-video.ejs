@@ -26,7 +26,8 @@
                             <div class="col">
 
                                 <div class="card h-100 border-0 shadow-sm rounded-3 overflow-hidden"
-                                    onclick="seleccionarVideo('<%= v.url %>')"
+                                    ondblclick="irAPublicar('<%= v.url %>')" 
+                                    title="Doble clic para publicar"
                                     style="cursor: pointer;">
 
                                     <!-- sin fondo negro-->
@@ -79,11 +80,13 @@
 
     <%- include("fragments/footer") %>
 
-    <script>
-        function seleccionarVideo(url) {
-            alert("Video seleccionado: " + url);
+   <script>
+        function irAPublicar(url) {
+            window.location.href = "/usuario/publicacion-video?videoUrl=" + encodeURIComponent(url);
         }
     </script>
+
+  
 
 </body>
 </html>

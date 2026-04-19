@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="es">
+<%- include("fragments/head") %>
+
+<body class="d-flex flex-column min-vh-100 bg-light">
+    <%- include("fragments/header") %>
+    <%- include("fragments/navbar") %>
+
+    <main class="flex-grow-1 publicacion-video-page py-5">
+        <div class="container">
+            <section class="mb-4 publicacion-video-hero rounded-4 p-4 p-md-5 shadow-sm text-white" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                <div class="d-flex flex-column flex-md-row align-items-start justify-content-between gap-3">
+                    <div>
+                        <span class="badge text-white mb-3 bg-primary">Publicación de video</span>
+                        <h1 class="h3 fw-bold mb-2">Crea tu publicación al estilo YouTube</h1>
+                        <p class="mb-0 text-white-75">Revisa la previsualización y completa los detalles antes de subirlo a YouTube.</p>
+                    </div>
+                    <div class="text-md-end">
+                        <a href="/usuario/publicar-video" class="btn btn-outline-light rounded-pill px-4 py-2">Volver a la galería</a>
+                    </div>
+                </div>
+            </section>
+
+            <section class="row g-4">
+                <div class="col-lg-7">
+                    <article class="card publicacion-video-card rounded-4 shadow-sm border-0 bg-white h-100">
+                        <div class="card-body p-4">
+                            <div class="d-flex align-items-center justify-content-between mb-3">
+                                <h2 class="h5 mb-0 fw-bold">Previsualización del video</h2>
+                                <span class="badge bg-light text-dark shadow-sm border">YouTube Style</span>
+                            </div>
+
+                            <div class="video-preview-wrapper rounded-4 overflow-hidden mb-3 bg-dark" style="aspect-ratio: 16/9; display: flex; align-items: center;">
+                                <video id="preview-video" class="w-100 h-100" controls playsinline src="<%= videoUrl %>">
+                                    Tu navegador no soporta la etiqueta de video.
+                                </video>
+                            </div>
+
+                            <p id="preview-info" class="text-muted mb-0 small">
+                                <i class="fa-solid fa-circle-info me-1"></i> Previsualizando archivo seleccionado de tu biblioteca NexusHub.
+                            </p>
+                        </div>
+                    </article>
+                </div>
+
+                <div class="col-lg-5">
+                    <article class="card publicacion-video-card rounded-4 shadow-sm border-0 bg-white h-100">
+                        <div class="card-body p-4">
+                            <h2 class="h5 fw-bold mb-4">Detalles de la publicación</h2>
+
+                            <form id="form-publicacion-video" class="publicacion-form" method="post" action="/usuario/api/youtube/subir-video">
+                                
+                                <input type="hidden" name="videoUrl" value="<%= videoUrl %>">
+
+                                <div class="mb-4">
+                                    <label for="titulo-video" class="form-label fw-semibold">Título</label>
+                                    <input id="titulo-video" name="titulo" class="form-control" type="text" maxlength="100" placeholder="Ej. Cómo crear contenido viral en NexusHub" required>
+                                    <div class="form-text">Hazlo claro, descriptivo y atractivo para tu audiencia.</div>
+                                </div>
+
+                                <div class="mb-4">
+                                    <label for="descripcion-video" class="form-label fw-semibold">Descripción</label>
+                                    <textarea id="descripcion-video" name="descripcion" class="form-control" rows="6" placeholder="Describe el contenido del video, añade hashtags o enlaces útiles." required></textarea>
+                                </div>
+
+                                <div class="d-flex flex-column gap-3">
+                                    <button type="submit" class="btn btn-danger rounded-pill px-4 py-2 fw-bold">
+                                        <i class="fa-brands fa-youtube me-2"></i>Publicar en YouTube
+                                    </button>
+                                    <button type="button" id="btn-reset-form" class="btn btn-outline-secondary rounded-pill px-4 py-2">
+                                        Limpiar textos
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </article>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <%- include("fragments/footer") %>
+
+    <script>
+        const resetButton = document.getElementById('btn-reset-form');
+
+        if (resetButton) {
+            resetButton.addEventListener('click', () => {
+                if (confirm('¿Estás seguro de que quieres borrar el título y la descripción?')) {
+                    document.getElementById('titulo-video').value = '';
+                    document.getElementById('descripcion-video').value = '';
+                }
+            });
+        }
+    </script>
+</body>
+</html>

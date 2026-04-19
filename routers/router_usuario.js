@@ -41,9 +41,9 @@ router.get("/ver-usuarios", getUsuarios);
 router.get("/inicio-sesion", verificarNoAutenticado, mostrarInicioSesion);
 router.get("/subir-video", verificarAutenticacion, mostrarSubirVideo);
 
-router.get("/galeria-test", verificarAutenticacion, mostrarGaleriaPublicar);
+router.get("/publicar-video", verificarAutenticacion, mostrarGaleriaPublicar);
 
-router.get("/publicar-video", verificarAutenticacion, mostrarPublicacionVideo);
+router.get("/publicacion-video", verificarAutenticacion, mostrarPublicacionVideo);
 router.post("/api/publicar-video", verificarAutenticacion, upload.single('video'), publicarVideo);
 
 router.post("/api/", registrarUsuario);
