@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="es">
+<%- include("fragments/head") %>
+
+<body class="d-flex flex-column min-vh-100 bg-light">
+
+    <%- include("fragments/header") %>
+    <%- include("fragments/navbar") %>
+
+    <main class="flex-grow-1 py-5">
+        <div class="container">
+
+            <section class="rounded-4 p-4 mb-4 shadow-sm text-white"
+                style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                <h1 class="h3 fw-bold">Publicar contenido</h1>
+                <p class="mb-0 opacity-75">Selecciona un video de tu biblioteca.</p>
+            </section>
+
+            <section class="card border-0 shadow-sm rounded-4 p-4 bg-white">
+
+                <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-4">
+
+                    <% if (locals.videos && videos.length > 0) { %>
+                        <% videos.forEach(function(v) { %>
+
+                            <div class="col">
+
+                                <div class="card h-100 border-0 shadow-sm rounded-3 overflow-hidden"
+                                    onclick="seleccionarVideo('<%= v.url %>')"
+                                    style="cursor: pointer;">
+
+                                    <!-- sin fondo negro-->
+                                    <div class="position-relative bg-dark" style="height: 160px;">
+
+                                        <img 
+                                            src="<%= v.thumbnailUrl %>"
+                                            class="w-100 h-100"
+                                            style="object-fit: cover;"
+                                            loading="lazy"
+                                        />
+
+                                        <!-- duración -->
+                                        <span class="position-absolute bottom-0 end-0 m-2 badge bg-dark">
+                                            <%= v.duracionSegundos %>s
+                                        </span>
+
+                                        <!-- play icon overlay -->
+                                        <div class="position-absolute top-50 start-50 translate-middle text-white opacity-75">
+                                            
+                                        </div>
+
+                                    </div>
+
+                                    <div class="card-body p-2 text-center">
+                                        <p class="card-text fw-semibold text-truncate mb-0">
+                                            <%= v.nombre %>
+                                        </p>
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                        <% }); %>
+                    <% } else { %>
+
+                        <div class="col-12 text-center py-5 text-muted">
+                            <p>No tienes videos subidos todavía.</p>
+                        </div>
+
+                    <% } %>
+
+                </div>
+
+            </section>
+
+        </div>
+    </main>
+
+    <%- include("fragments/footer") %>
+
+    <script>
+        function seleccionarVideo(url) {
+            alert("Video seleccionado: " + url);
+        }
+    </script>
+
+</body>
+</html>

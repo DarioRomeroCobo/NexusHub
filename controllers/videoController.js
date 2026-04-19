@@ -132,7 +132,42 @@ const cargarVideo = async (req, res, next) => {
     }
 };
 
+//NUEVA FUNCION PARA MOSTRAR LA GALERIA DE VIDEOS EN LA PAGINA DE PUBLICAR VIDEO (PASO 2)
+const mostrarGaleriaPublicar = async (req, res, next) => {
+    try {
+        const correoUsuario = (req.session.correo || '').trim().toLowerCase();
+
+        const videosRaw = await db.query(
+            `SELECT correo_usuario, url_video, nombre_video, peso_bytes, duracion_segundos, fecha_subida
+             FROM VideosUsuario
+             WHERE correo_usuario = @p0
+             ORDER BY fecha_subida DESC`,
+            [correoUsuario]
+        );
+
+        // 👇 EXACTAMENTE igual que en subir-video
+        const videos = (videosRaw || []).map((video) => ({
+            nombre: video.nombre_video,
+            pesoMB: (Number(video.peso_bytes || 0) / (1024 * 1024)).toFixed(2),
+            fecha: video.fecha_subida,
+            duracionSegundos: Number(video.duracion_segundos || 0),
+            url: video.url_video
+        }));
+
+        res.render('publicar-video', {
+            videos,
+            totalVideos: videos.length
+        });
+
+    } catch (err) {
+        console.error('Error en mostrarGaleriaPublicar:', err);
+        next(err);
+    }
+};
+
+
 module.exports = {
     mostrarSubirVideo,
-    cargarVideo
+    cargarVideo,
+    mostrarGaleriaPublicar
 };
