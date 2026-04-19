@@ -27,7 +27,8 @@ const {
     mostrarVincularYoutube,
     iniciarVinculacionYoutube,
     callbackYoutubeOAuth,
-    desvincularYoutube
+    desvincularYoutube,
+    subirVideoYoutube
 } = require('../controllers/youtubeController');
 
 const { verificarAutenticacion, verificarNoAutenticado } = require("../utils/middleware-auth");
@@ -50,4 +51,6 @@ router.get("/youtube/auth", verificarAutenticacion, iniciarVinculacionYoutube);
 router.get("/youtube/callback", verificarAutenticacion, callbackYoutubeOAuth);
 router.post("/youtube/desvincular", verificarAutenticacion, desvincularYoutube);
 router.get("/ver-estadisticas", verificarAutenticacion, mostrarEstadisticas);
+router.post("/api/youtube/subir-video", verificarAutenticacion, subirVideoYoutube);
+
 module.exports = router;

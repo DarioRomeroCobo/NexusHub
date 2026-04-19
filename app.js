@@ -107,6 +107,9 @@ app.use((req, res, next) => {
 
 app.use((err, req, res, next) => {
     console.error(err.stack);
+    if (req.originalUrl && req.originalUrl.startsWith('/usuario/api/')) {
+        return res.status(500).json({ ok: false, error: 'Error interno del servidor' });
+    }
     res.status(500).render('error', {
         titulo: 'Error interno del server',
         mensaje: 'Ups! Algo no fue bien...',

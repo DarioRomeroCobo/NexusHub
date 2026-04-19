@@ -77,13 +77,14 @@ describe('Integración NH-72: Flujo de Subida de Vídeos', () => {
 
     // --- BLOQUE DE TESTS ---
 
-    test('NH-52/54: El servidor debe rechazar subidas sin sesión activa (Redirección)', async () => {
+    test('NH-52/54: El servidor debe rechazar subidas sin sesión activa (401 JSON)', async () => {
         const response = await request(app)
             .post('/usuario/api/cargar-video')
             .attach('video', Buffer.from('video_data'), 'test.mp4');
 
-        // Cambiamos 401 por 302 porque tu middleware hace res.redirect
-        expect(response.status).toBe(302); 
+        expect(response.status).toBe(401);
+        expect(response.body.ok).toBe(false);
+        expect(response.body.error).toMatch(/iniciar sesion|sesion/i);
     });
 
     test('NH-50/55: Subida exitosa, integración con Azure y registro en BD', async () => {
