@@ -156,7 +156,7 @@ const mostrarEstadisticasPublicaciones = async (req, res, next) => {
 
         const statsResponse = await axios.get('https://www.googleapis.com/youtube/v3/videos', {
             params: {
-                part: 'snippet,statistics',
+                part: 'snippet,statistics,status',
                 id: ids.join(',')
             },
             headers: {
@@ -174,7 +174,9 @@ const mostrarEstadisticasPublicaciones = async (req, res, next) => {
             fechaPublicacion: video.snippet?.publishedAt || null,
             vistas: Number(video.statistics?.viewCount || 0),
             meGusta: Number(video.statistics?.likeCount || 0),
+            noMeGusta: Number(video.statistics?.dislikeCount || 0),
             comentarios: Number(video.statistics?.commentCount || 0),
+            monetizable: video.status?.license === 'youtube',
             url: `https://www.youtube.com/watch?v=${video.id}`,
             canalTitulo: video.snippet?.channelTitle || null
         }));

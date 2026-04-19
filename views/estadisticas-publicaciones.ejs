@@ -21,7 +21,7 @@
                                            
                                     </p>
                                 </div>
-                                <span class="badge text-bg-light border">Total: <%= totalPublicaciones || 0 %></span>
+                                <span class="badge text-bg-light border fs-6">Total: <%= totalPublicaciones || 0 %></span>
                             </div>
                             <p class="small mt-3 mb-0 text-white-50">
                                 Última actualización: <%= ultimaActualizacion ? new
@@ -62,7 +62,7 @@
                                                     <div class="col-12 col-md-9 col-lg-10">
                                                         <div
                                                             class="d-flex flex-wrap justify-content-between align-items-start gap-2 mb-2">
-                                                            <h2 class="h5 fw-bold mb-0">
+                                                            <h2 class="h4 fw-bold mb-0">
                                                                 <%= publicacion.titulo %>
                                                             </h2>
                                                             <span class="text-muted small">
@@ -72,14 +72,20 @@
                                                             </span>
                                                         </div>
                                                         <div class="d-flex flex-wrap gap-2 mb-3">
-                                                            <span class="badge text-bg-light border">Visitas: <%=
+                                                                <span class="badge text-bg-light border fs-6">👁️ Visualizaciones: <%=
                                                                     publicacion.vistas.toLocaleString('es-ES') %></span>
-                                                            <span class="badge text-bg-light border">Me gusta: <%=
+                                                                <span class="badge text-bg-light border fs-6">👍 Me gusta: <%=
                                                                     publicacion.meGusta.toLocaleString('es-ES') %>
                                                                     </span>
-                                                            <span class="badge text-bg-light border">Comentarios: <%=
+                                                                <span class="badge text-bg-light border fs-6">👎 No me gusta: <%=
+                                                                publicacion.noMeGusta.toLocaleString('es-ES') %>
+                                                                </span>
+                                                                <span class="badge text-bg-light border fs-6">💬 Comentarios: <%=
                                                                     publicacion.comentarios.toLocaleString('es-ES') %>
                                                                     </span>
+                                                                <span class="badge text-bg-light border fs-6">💰 Monetización: <%=
+                                                                publicacion.monetizable ? 'SI' : 'NO' %>
+                                                                </span>
                                                         </div>
                                                         <a href="<%= publicacion.url %>" target="_blank"
                                                             rel="noopener noreferrer"
