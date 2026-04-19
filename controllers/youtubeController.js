@@ -530,5 +530,6 @@ module.exports = {
     iniciarVinculacionYoutube,
     callbackYoutubeOAuth,
     desvincularYoutube,
-    subirVideoYoutube
+    subirVideoYoutube,
+    getAccessTokenVigente
 };
