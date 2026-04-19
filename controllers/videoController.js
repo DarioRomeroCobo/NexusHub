@@ -32,6 +32,22 @@ const mostrarSubirVideo = async (req, res, next) => {
     }
 };
 
+const mostrarPublicacionVideo = async (req, res, next) => {
+    try {
+        res.render('publicacion-video');
+    } catch (err) {
+        next(err);
+    }
+};
+
+const publicarVideo = async (req, res, next) => {
+    try {
+        return res.status(501).json({ ok: false, error: 'Funcionalidad de publicación de video aún no implementada' });
+    } catch (err) {
+        next(err);
+    }
+};
+
 const cargarVideo = async (req, res, next) => {
     try {
         if (req.session.isLoggedIn !== true || !req.session.usuarioId) {
@@ -169,5 +185,8 @@ const mostrarGaleriaPublicar = async (req, res, next) => {
 module.exports = {
     mostrarSubirVideo,
     cargarVideo,
-    mostrarGaleriaPublicar
+    mostrarGaleriaPublicar,
+    mostrarPublicacionVideo,
+    cargarVideo,
+    publicarVideo
 };
