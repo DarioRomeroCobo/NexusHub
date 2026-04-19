@@ -15,12 +15,20 @@ const mostrarSubirVideo = async (req, res, next) => {
             [correoUsuario]
         );
 
-        const videos = (videosRaw || []).map((video) => ({
-            nombre: video.nombre_video,
-            pesoMB: (Number(video.peso_bytes || 0) / (1024 * 1024)).toFixed(2),
-            fecha: video.fecha_subida,
-            duracionSegundos: Number(video.duracion_segundos || 0),
-            url: video.url_video
+        const videos = await Promise.all((videosRaw || []).map(async (video) => {
+            const url = new URL(video.url_video);
+            const pathParts = url.pathname.split('/').filter(p => p);
+            const containerName = pathParts[0];
+            const blobName = pathParts.slice(1).join('/');
+            const sasUrl = await azureBlob.getBlobSasUrl(containerName, blobName);
+
+            return {
+                nombre: video.nombre_video,
+                pesoMB: (Number(video.peso_bytes || 0) / (1024 * 1024)).toFixed(2),
+                fecha: video.fecha_subida,
+                duracionSegundos: Number(video.duracion_segundos || 0),
+                url: sasUrl
+            };
         }));
 
         res.render('subir-video', {
@@ -36,7 +44,18 @@ const mostrarPublicacionVideo = async (req, res, next) => {
     const videoUrl = req.query.videoUrl; 
     if (!videoUrl) return res.redirect('/usuario/publicar-video');
 
-    res.render('publicacion-video', { videoUrl }); 
+    // Parse the blob URL to get container and blob name
+    const url = new URL(videoUrl);
+    const pathParts = url.pathname.split('/').filter(p => p);
+    const containerName = pathParts[0]; // 'videos'
+    const blobName = pathParts.slice(1).join('/'); // 'videos/39/1774434256683-pruebaVideo.mp4'
+
+    try {
+        const sasUrl = await azureBlob.getBlobSasUrl(containerName, blobName);
+        res.render('publicacion-video', { videoUrl: sasUrl }); 
+    } catch (err) {
+        next(err);
+    }
 };
 
 
@@ -114,7 +133,7 @@ const cargarVideo = async (req, res, next) => {
         const resultado = await azureBlob.uploadBlob('videos', nombreBlob, req.file.buffer);
 
         if (resultado.success) {
-            const urlVideo = azureBlob.getBlobUrl('videos', nombreBlob);
+            const urlVideo = await azureBlob.getBlobSasUrl('videos', nombreBlob);
 
             if (urlVideo.length > 255) {
                 await azureBlob.deleteBlob('videos', nombreBlob);
@@ -163,12 +182,20 @@ const mostrarGaleriaPublicar = async (req, res, next) => {
         );
 
         // 👇 EXACTAMENTE igual que en subir-video
-        const videos = (videosRaw || []).map((video) => ({
-            nombre: video.nombre_video,
-            pesoMB: (Number(video.peso_bytes || 0) / (1024 * 1024)).toFixed(2),
-            fecha: video.fecha_subida,
-            duracionSegundos: Number(video.duracion_segundos || 0),
-            url: video.url_video
+        const videos = await Promise.all((videosRaw || []).map(async (video) => {
+            const url = new URL(video.url_video);
+            const pathParts = url.pathname.split('/').filter(p => p);
+            const containerName = pathParts[0];
+            const blobName = pathParts.slice(1).join('/');
+            const sasUrl = await azureBlob.getBlobSasUrl(containerName, blobName);
+
+            return {
+                nombre: video.nombre_video,
+                pesoMB: (Number(video.peso_bytes || 0) / (1024 * 1024)).toFixed(2),
+                fecha: video.fecha_subida,
+                duracionSegundos: Number(video.duracion_segundos || 0),
+                url: sasUrl
+            };
         }));
 
         res.render('publicar-video', {

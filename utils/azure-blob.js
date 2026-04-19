@@ -1,4 +1,4 @@
-const { BlobServiceClient } = require('@azure/storage-blob');
+const { BlobServiceClient, generateBlobSASQueryParameters, BlobSASPermissions } = require('@azure/storage-blob');
 
 class AzureBlobStorage {
     constructor(connectionString) {
@@ -30,6 +30,21 @@ class AzureBlobStorage {
         const containerClient = this.blobServiceClient.getContainerClient(containerName);
         const blockBlobClient = containerClient.getBlockBlobClient(blobName);
         return blockBlobClient.url;
+    }
+
+    async getBlobSasUrl(containerName, blobName, expiresInMinutes = 60) {
+        const containerClient = this.blobServiceClient.getContainerClient(containerName);
+        const blockBlobClient = containerClient.getBlockBlobClient(blobName);
+
+        const sasOptions = {
+            containerName,
+            blobName,
+            permissions: BlobSASPermissions.parse("r"), // read only
+            expiresOn: new Date(new Date().valueOf() + expiresInMinutes * 60 * 1000),
+        };
+
+        const sasToken = generateBlobSASQueryParameters(sasOptions, this.blobServiceClient.credential).toString();
+        return `${blockBlobClient.url}?${sasToken}`;
     }
 
     async deleteBlob(containerName, blobName) {
