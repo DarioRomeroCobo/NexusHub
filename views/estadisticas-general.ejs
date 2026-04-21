@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="es">
+<%- include("fragments/head") %>
+
+<body class="d-flex flex-column min-vh-100 bg-light">
+    <%- include("fragments/header") %>
+    <%- include("fragments/navbar") %>
+
+    <main class="flex-grow-1 py-4 py-md-5">
+        <div class="container">
+
+            <section class="card border-0 shadow-sm rounded-4 p-4 p-md-5 bg-white mb-4">
+                <h1 class="h3 fw-bold mb-2">
+                     Centro de estadísticas
+                </h1>
+                <p class="text-muted mb-0">
+                    Consulta el rendimiento de tus redes sociales de forma global o por publicaciones.
+                </p>
+            </section>
+
+            <section class="row g-4">
+
+                <div class="col-md-6">
+                    <article class="h-100 p-4 border rounded-4 shadow-sm bg-white hover-card">
+
+                        <h2 class="h4 mb-3 text-primary">
+                             Estadísticas por red social
+                        </h2>
+
+                        <p class="text-muted">
+                            Consulta seguidores, visualizaciones, me gusta y comentarios totales de cada plataforma.
+                        </p>
+
+                        <div class="mt-3">
+                            <a href="/usuario/estadisticas-redsocial"
+                                class="btn btn-primary rounded-pill px-4">
+                                Ver estadísticas
+                            </a>
+                        </div>
+
+                    </article>
+                </div>
+
+                <div class="col-md-6">
+                    <article class="h-100 p-4 border rounded-4 shadow-sm bg-white hover-card">
+
+                        <h2 class="h4 mb-3 text-primary">
+                             Últimas 5 publicaciones
+                        </h2>
+
+                        <p class="text-muted">
+                            Analiza el rendimiento de tus últimos contenidos publicados.
+                        </p>
+
+                        <div class="mt-3">
+                            <a href="/usuario/estadisticas-publicaciones"
+                                class="btn btn-primary rounded-pill px-4">
+                                Ver estadísticas
+                            </a>
+                        </div>
+
+                    </article>
+                </div>
+
+            </section>
+
+        </div>
+    </main>
+
+    <%- include("fragments/footer") %>
+</body>
+</html>

@@ -50,7 +50,11 @@ router.get("/vincular-youtube", verificarAutenticacion, mostrarVincularYoutube);
 router.get("/youtube/auth", verificarAutenticacion, iniciarVinculacionYoutube);
 router.get("/youtube/callback", verificarAutenticacion, callbackYoutubeOAuth);
 router.post("/youtube/desvincular", verificarAutenticacion, desvincularYoutube);
-router.get("/ver-estadisticas", verificarAutenticacion, mostrarEstadisticas);
 router.post("/api/youtube/subir-video", verificarAutenticacion, subirVideoYoutube);
+
+router.get("/estadisticas", verificarAutenticacion, (req, res) => {
+    res.render("estadisticas-general");
+});
+router.get("/estadisticas-redsocial", verificarAutenticacion, mostrarEstadisticas);
 
 module.exports = router;
