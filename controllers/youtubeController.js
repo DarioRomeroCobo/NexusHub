@@ -274,11 +274,11 @@ const subirVideoYoutube = async (req, res, next) => {
         }
 
         const correoUsuario = String(req.session.correo).trim().toLowerCase();
-        const videoId = Number.parseInt(req.body.videoId, 10);
+        const videoUrl = String(req.body.videoUrl || '').trim();
         const privacidad = String(req.body.privacyStatus || 'private').toLowerCase();
 
-        if (!Number.isFinite(videoId) || videoId <= 0) {
-            return res.status(400).json({ ok: false, error: 'videoId es obligatorio y debe ser numerico' });
+        if (!videoUrl) {
+            return res.status(400).json({ ok: false, error: 'videoUrl es obligatorio' });
         }
 
         if (!['private', 'public', 'unlisted'].includes(privacidad)) {
@@ -291,10 +291,10 @@ const subirVideoYoutube = async (req, res, next) => {
         }
 
         const videos = await db.query(
-            `SELECT id_video, nombre_video, url_video
+            `SELECT nombre_video, url_video
              FROM VideosUsuario
-             WHERE id_video = @p0 AND correo_usuario = @p1`,
-            [videoId, correoUsuario]
+             WHERE url_video = @p0 AND correo_usuario = @p1`,
+            [videoUrll, correoUsuario]
         );
 
         const video = Array.isArray(videos) && videos.length > 0 ? videos[0] : null;
@@ -364,7 +364,11 @@ const subirVideoYoutube = async (req, res, next) => {
         });
     } catch (err) {
         const estado = err.response?.status;
-        const detalle = err.response?.data?.error?.message || err.message;
+        const detalle = err.response?.data?.error?.message || err.response?.data || err.message;
+
+        console.error('Error completo al subir video a YouTube:', err);
+        console.error('Estado:', estado);
+        console.error('Detalle:', detalle);
 
         if (estado === 401 || estado === 403) {
             return res.status(estado).json({
