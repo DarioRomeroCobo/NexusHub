@@ -2,6 +2,10 @@ const crypto = require('crypto');
 const axios = require('axios');
 const FormData = require('form-data');
 const db = require('../utils/middleware-bd');
+const AzureBlobStorage = require('../utils/azure-blob');
+
+const CONNECTION_STRING = 'DefaultEndpointsProtocol=https;AccountName=almacenamientonexushub;AccountKey=9JbBzi0ph16RzsPC7X3zRTJij0aCadWGY+H/a17Rcy3zGzqZvncqL9GUTv9jhpJ+UqBIaJF4n2XT+AStllDGeg==;EndpointSuffix=core.windows.net';
+const azureBlob = new AzureBlobStorage(CONNECTION_STRING);
 
 const YOUTUBE_SCOPES = [
     'https://www.googleapis.com/auth/youtube.readonly',
@@ -59,26 +63,32 @@ const getAccessTokenVigente = async (req, correoUsuario) => {
         return { ok: false, status: 500, error: 'Falta configuracion OAuth de YouTube en el servidor' };
     }
 
-    const tokenResponse = await axios.post(
-        'https://oauth2.googleapis.com/token',
-        new URLSearchParams({
-            client_id: clientId,
-            client_secret: clientSecret,
-            refresh_token: String(vinculacion.refresh_token),
-            grant_type: 'refresh_token'
-        }).toString(),
-        {
-            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-            timeout: 15000
-        }
-    );
+    let tokenResponse;
+    try {
+        tokenResponse = await axios.post(
+            'https://oauth2.googleapis.com/token',
+            new URLSearchParams({
+                client_id: clientId,
+                client_secret: clientSecret,
+                refresh_token: String(vinculacion.refresh_token),
+                grant_type: 'refresh_token'
+            }).toString(),
+            {
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                timeout: 15000
+            }
+        );
+    } catch (err) {
+        console.error('Error al renovar token de YouTube:', err.response?.data || err.message);
+        return { ok: false, status: 401, error: 'No se pudo renovar el token de YouTube. Vuelve a vincular tu cuenta.' };
+    }
 
     const nuevoAccessToken = tokenResponse.data?.access_token;
     const nuevoRefreshToken = tokenResponse.data?.refresh_token;
     const expiresIn = Number(tokenResponse.data?.expires_in || 3600);
 
     if (!nuevoAccessToken) {
-        return { ok: false, status: 401, error: 'No se pudo renovar el token de YouTube' };
+        return { ok: false, status: 401, error: 'No se pudo renovar el token de YouTube. Vuelve a vincular tu cuenta.' };
     }
 
     const nuevoExpiresAt = new Date(Date.now() + expiresIn * 1000);
@@ -275,6 +285,7 @@ const subirVideoYoutube = async (req, res, next) => {
 
         const correoUsuario = String(req.session.correo).trim().toLowerCase();
         const videoUrl = String(req.body.videoUrl || '').trim();
+        const blobUrl = videoUrl.split('?')[0];
         const privacidad = String(req.body.privacyStatus || 'private').toLowerCase();
 
         if (!videoUrl) {
@@ -294,7 +305,7 @@ const subirVideoYoutube = async (req, res, next) => {
             `SELECT nombre_video, url_video
              FROM VideosUsuario
              WHERE url_video = @p0 AND correo_usuario = @p1`,
-            [videoUrl, correoUsuario]
+            [blobUrl, correoUsuario]
         );
 
         const video = Array.isArray(videos) && videos.length > 0 ? videos[0] : null;
@@ -302,7 +313,14 @@ const subirVideoYoutube = async (req, res, next) => {
             return res.status(404).json({ ok: false, error: 'No se encontro el video solicitado' });
         }
 
-        const descarga = await axios.get(video.url_video, {
+        // Generate SAS URL for download
+        const url = new URL(video.url_video);
+        const pathParts = url.pathname.split('/').filter(p => p);
+        const containerName = pathParts[0];
+        const blobName = pathParts.slice(1).join('/');
+        const sasUrl = await azureBlob.getBlobSasUrl(containerName, blobName);
+
+        const descarga = await axios.get(sasUrl, {
             responseType: 'arraybuffer',
             timeout: 120000,
             maxContentLength: 1024 * 1024 * 1024
