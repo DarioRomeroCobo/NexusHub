@@ -5,6 +5,7 @@ const db = require('../utils/middleware-bd');
 
 const YOUTUBE_SCOPES = [
     'https://www.googleapis.com/auth/youtube.readonly',
+    'https://www.googleapis.com/auth/yt-analytics.readonly',
     'https://www.googleapis.com/auth/youtube.upload'
 ];
 

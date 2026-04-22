@@ -1,6 +1,8 @@
 const axios = require('axios');
 const db = require('../utils/middleware-bd');
 
+let ultimaTrazaAnalyticsConfig = 0;
+
 const getYoutubeOAuthConfig = (req) => {
     const clientId = process.env.YOUTUBE_CLIENT_ID || process.env.GOOGLE_CLIENT_ID || '';
     const clientSecret = process.env.YOUTUBE_CLIENT_SECRET || process.env.GOOGLE_CLIENT_SECRET || '';
@@ -17,6 +19,54 @@ const actualizarTokensYoutube = async (correoUsuario, accessToken, expiresAt, re
          WHERE correo_usuario = @p0`,
         [correoUsuario, accessToken, expiresAt, refreshTokenOpcional || null]
     );
+};
+
+const formatoFechaIso = (fecha) => {
+    const anio = fecha.getFullYear();
+    const mes = String(fecha.getMonth() + 1).padStart(2, '0');
+    const dia = String(fecha.getDate()).padStart(2, '0');
+    return `${anio}-${mes}-${dia}`;
+};
+
+const getInicioSeriePorVideo = (fechaPublicacion, fechaHoy) => {
+    const inicio30Dias = new Date(fechaHoy);
+    inicio30Dias.setHours(0, 0, 0, 0);
+    inicio30Dias.setDate(inicio30Dias.getDate() - 29);
+
+    if (!fechaPublicacion) {
+        return inicio30Dias;
+    }
+
+    const inicioVideo = new Date(fechaPublicacion);
+    if (Number.isNaN(inicioVideo.getTime())) {
+        return inicio30Dias;
+    }
+
+    inicioVideo.setHours(0, 0, 0, 0);
+    return inicioVideo > inicio30Dias ? inicioVideo : inicio30Dias;
+};
+
+const esErrorApiAnalyticsNoHabilitada = (analyticsErr) => {
+    const status = analyticsErr.response?.status;
+    const reason = String(analyticsErr.response?.data?.error?.errors?.[0]?.reason || '').toLowerCase();
+    const detalle = String(analyticsErr.response?.data?.error?.message || analyticsErr.message || '').toLowerCase();
+
+    return status === 403 && (
+        reason === 'accessnotconfigured'
+        || reason === 'forbidden'
+        || detalle.includes('youtube analytics api has not been used')
+        || detalle.includes('it is disabled')
+    );
+};
+
+const debeTrazarAvisoAnalytics = () => {
+    const ahora = Date.now();
+    const ventanaMs = 5 * 60 * 1000;
+    if (ahora - ultimaTrazaAnalyticsConfig < ventanaMs) {
+        return false;
+    }
+    ultimaTrazaAnalyticsConfig = ahora;
+    return true;
 };
 
 const getAccessTokenVigente = async (req, correoUsuario) => {
@@ -113,6 +163,7 @@ const mostrarEstadisticasPublicaciones = async (req, res, next) => {
             return res.render('estadisticas-publicaciones', {
                 publicaciones: [],
                 totalPublicaciones: 0,
+                errorSeriesVideos: null,
                 error: tokenData.error,
                 canal: null,
                 ultimaActualizacion: new Date()
@@ -143,6 +194,7 @@ const mostrarEstadisticasPublicaciones = async (req, res, next) => {
             return res.render('estadisticas-publicaciones', {
                 publicaciones: [],
                 totalPublicaciones: 0,
+                errorSeriesVideos: null,
                 error: null,
                 canal: null,
                 ultimaActualizacion: new Date()
@@ -178,14 +230,114 @@ const mostrarEstadisticasPublicaciones = async (req, res, next) => {
             comentarios: Number(video.statistics?.commentCount || 0),
             monetizable: video.status?.license === 'youtube',
             url: `https://www.youtube.com/watch?v=${video.id}`,
-            canalTitulo: video.snippet?.channelTitle || null
+            canalTitulo: video.snippet?.channelTitle || null,
+            serieTemporal: [],
+            rangoTemporal: null
         }));
 
         const canal = publicaciones.find((p) => p.canalTitulo)?.canalTitulo || null;
 
+        let errorSeriesVideos = null;
+        const hoy = new Date();
+        hoy.setHours(0, 0, 0, 0);
+
+        await Promise.all(publicaciones.map(async (publicacion) => {
+            const inicioSerie = getInicioSeriePorVideo(publicacion.fechaPublicacion, hoy);
+            const inicioIso = formatoFechaIso(inicioSerie);
+            const finIso = formatoFechaIso(hoy);
+
+            publicacion.rangoTemporal = {
+                inicio: inicioIso,
+                fin: finIso
+            };
+
+            try {
+                const analyticsVideoResponse = await axios.get('https://youtubeanalytics.googleapis.com/v2/reports', {
+                    params: {
+                        ids: 'channel==MINE',
+                        startDate: inicioIso,
+                        endDate: finIso,
+                        metrics: 'views,likes,dislikes,comments',
+                        dimensions: 'day',
+                        sort: 'day',
+                        filters: `video==${publicacion.id}`
+                    },
+                    headers: {
+                        Authorization: `Bearer ${accessToken}`
+                    },
+                    timeout: 15000
+                });
+
+                publicacion.serieTemporal = Array.isArray(analyticsVideoResponse.data?.rows)
+                    ? (() => {
+                        const filas = analyticsVideoResponse.data.rows;
+
+                        const sumaVistasRango = filas.reduce((acc, fila) => acc + Number(fila[1] || 0), 0);
+                        const sumaMeGustaRango = filas.reduce((acc, fila) => acc + Number(fila[2] || 0), 0);
+                        const sumaNoMeGustaRango = filas.reduce((acc, fila) => acc + Number(fila[3] || 0), 0);
+                        const sumaComentariosRango = filas.reduce((acc, fila) => acc + Number(fila[4] || 0), 0);
+
+                        const baseVistas = Math.max(Number(publicacion.vistas || 0) - sumaVistasRango, 0);
+                        const baseMeGusta = Math.max(Number(publicacion.meGusta || 0) - sumaMeGustaRango, 0);
+                        const baseNoMeGusta = Math.max(Number(publicacion.noMeGusta || 0) - sumaNoMeGustaRango, 0);
+                        const baseComentarios = Math.max(Number(publicacion.comentarios || 0) - sumaComentariosRango, 0);
+
+                        let vistasAcumuladas = baseVistas;
+                        let meGustaAcumulados = baseMeGusta;
+                        let noMeGustaAcumulados = baseNoMeGusta;
+                        let comentariosAcumulados = baseComentarios;
+
+                        return filas.map((fila) => {
+                            const vistasDia = Number(fila[1] || 0);
+                            const meGustaDia = Number(fila[2] || 0);
+                            const noMeGustaDia = Number(fila[3] || 0);
+                            const comentariosDia = Number(fila[4] || 0);
+
+                            vistasAcumuladas += vistasDia;
+                            meGustaAcumulados += meGustaDia;
+                            noMeGustaAcumulados += noMeGustaDia;
+                            comentariosAcumulados += comentariosDia;
+
+                            return {
+                                fecha: fila[0],
+                                vistas: vistasDia,
+                                meGusta: meGustaDia,
+                                noMeGusta: noMeGustaDia,
+                                comentarios: comentariosDia,
+                                vistasTotal: vistasAcumuladas,
+                                meGustaTotal: meGustaAcumulados,
+                                noMeGustaTotal: noMeGustaAcumulados,
+                                comentariosTotal: comentariosAcumulados
+                            };
+                        });
+                    })()
+                    : [];
+            } catch (analyticsErr) {
+                const statusAnalytics = analyticsErr.response?.status;
+                const detalleAnalytics = analyticsErr.response?.data?.error?.message || analyticsErr.message;
+
+                if (!errorSeriesVideos) {
+                    if (esErrorApiAnalyticsNoHabilitada(analyticsErr)) {
+                        errorSeriesVideos = 'La API de YouTube Analytics no está habilitada en Google Cloud. Actívala y espera unos minutos para ver las series por video.';
+                    } else if (statusAnalytics === 403 || statusAnalytics === 401) {
+                        errorSeriesVideos = 'Para ver la evolución diaria por video, vuelve a vincular YouTube y acepta permisos de Analytics.';
+                    } else {
+                        errorSeriesVideos = 'No se pudo cargar la evolución diaria para algunos videos en este momento.';
+                    }
+                }
+
+                if (debeTrazarAvisoAnalytics()) {
+                    console.error(`Error YouTube Analytics (${publicacion.id}):`, detalleAnalytics);
+                }
+
+                publicacion.serieTemporal = [];
+            }
+        }));
+
         return res.render('estadisticas-publicaciones', {
             publicaciones,
             totalPublicaciones: publicaciones.length,
+            errorSeriesVideos,
             error: null,
             canal,
             ultimaActualizacion: new Date()
@@ -196,6 +348,7 @@ const mostrarEstadisticasPublicaciones = async (req, res, next) => {
             return res.render('estadisticas-publicaciones', {
                 publicaciones: [],
                 totalPublicaciones: 0,
+                errorSeriesVideos: null,
                 error: `No se pudo consultar YouTube (${detalle}). Vuelve a vincular tu cuenta para renovar permisos.`,
                 canal: null,
                 ultimaActualizacion: new Date()
