@@ -13,6 +13,7 @@ jest.mock('../utils/azure-blob', () => {
         return {
             uploadBlob: jest.fn().mockResolvedValue({ success: true }),
             getBlobUrl: jest.fn().mockReturnValue('https://mockazure.com/video_test.mp4'),
+            getBlobSasUrl: jest.fn().mockResolvedValue('https://mockazure.com/video_test.mp4?sas=token'),
             deleteBlob: jest.fn().mockResolvedValue({ success: true })
         };
     });
