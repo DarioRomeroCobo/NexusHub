@@ -1,19 +1,17 @@
 document.addEventListener("DOMContentLoaded", () => {
-    const feedback = document.getElementById("vincular-youtube-feedback");
+    const mensajeError = document.getElementById("mensajeError");
 
-    if (!feedback) return; // Si no existe el div en este HTML, no hace nada
+    if (!mensajeError) return; // Si no existe el div en este HTML, no hace nada
 
     // 1. Analizamos la URL del navegador actual
     const urlParams = new URLSearchParams(window.location.search);
-    const mensajeError = urlParams.get("error");
+    const error = urlParams.get("error");
 
-    // 2. Si la URL tiene ?error=... lo mostramos en pantalla
-    if (mensajeError) {
-        feedback.textContent = decodeURIComponent(mensajeError);
-        feedback.classList.remove("d-none");
-        feedback.classList.add("alert-danger");
+    // 2. Si la URL tiene ?error=... mostramos el mensaje de error
+    if (error) {
+        mensajeError.classList.remove("d-none");
 
-        // (Opcional) Limpiamos la URL visualmente para que no se quede el ?error=... feo ahí arriba
+        // Limpiamos la URL visualmente para que no se quede el ?error=... en la barra de direcciones
         window.history.replaceState({}, document.title, window.location.pathname);
     }
 });
