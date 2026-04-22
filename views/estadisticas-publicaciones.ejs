@@ -100,68 +100,75 @@
                                                             </span>
                                                         </div>
 
-                                                        <div class="row g-2 mb-3">
-                                                            <div class="col-6 col-lg-3">
-                                                                <div class="border rounded-3 p-2">
-                                                                    <p class="small fw-semibold text-muted mb-1">
-                                                                        Visualizaciones</p>
-                                                                    <div
-                                                                        style="position: relative; height: 150px; width: 100%;">
-                                                                        <canvas class="mini-metrica-chart"
-                                                                            data-titulo="Visualizaciones"
-                                                                            data-video-id="<%= publicacion.id %>"
-                                                                            data-metrica="vistasTotal"
-                                                                            data-color="rgba(13, 110, 253, 0.85)"
-                                                                            data-indice="<%= index %>"></canvas>
+                                                        <details class="metricas-desplegable mb-3" data-video-id="<%= publicacion.id %>"
+                                                            <%= index === 0 ? 'open' : '' %>>
+                                                            <summary class="btn btn-sm btn-outline-secondary rounded-pill px-3 py-2 fw-semibold">
+                                                                Ver gráficas de los últimos 30 días
+                                                            </summary>
+
+                                                            <div class="row g-2 mt-2">
+                                                                <div class="col-6 col-lg-3">
+                                                                    <div class="border rounded-3 p-2">
+                                                                        <p class="small fw-semibold text-muted mb-1">
+                                                                            Visualizaciones</p>
+                                                                        <div
+                                                                            style="position: relative; height: 150px; width: 100%;">
+                                                                            <canvas class="mini-metrica-chart"
+                                                                                data-titulo="Visualizaciones"
+                                                                                data-video-id="<%= publicacion.id %>"
+                                                                                data-metrica="vistasTotal"
+                                                                                data-color="rgba(13, 110, 253, 0.85)"
+                                                                                data-indice="<%= index %>"></canvas>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                                <div class="col-6 col-lg-3">
+                                                                    <div class="border rounded-3 p-2">
+                                                                        <p class="small fw-semibold text-muted mb-1">Me
+                                                                            gusta</p>
+                                                                        <div
+                                                                            style="position: relative; height: 150px; width: 100%;">
+                                                                            <canvas class="mini-metrica-chart"
+                                                                                data-titulo="Me gusta"
+                                                                                data-video-id="<%= publicacion.id %>"
+                                                                                data-metrica="meGustaTotal"
+                                                                                data-color="rgba(25, 135, 84, 0.85)"
+                                                                                data-indice="<%= index %>"></canvas>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                                <div class="col-6 col-lg-3">
+                                                                    <div class="border rounded-3 p-2">
+                                                                        <p class="small fw-semibold text-muted mb-1">No me
+                                                                            gusta</p>
+                                                                        <div
+                                                                            style="position: relative; height: 150px; width: 100%;">
+                                                                            <canvas class="mini-metrica-chart"
+                                                                                data-titulo="No me gusta"
+                                                                                data-video-id="<%= publicacion.id %>"
+                                                                                data-metrica="noMeGustaTotal"
+                                                                                data-color="rgba(220, 53, 69, 0.85)"
+                                                                                data-indice="<%= index %>"></canvas>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                                <div class="col-6 col-lg-3">
+                                                                    <div class="border rounded-3 p-2">
+                                                                        <p class="small fw-semibold text-muted mb-1">
+                                                                            Comentarios</p>
+                                                                        <div
+                                                                            style="position: relative; height: 150px; width: 100%;">
+                                                                            <canvas class="mini-metrica-chart"
+                                                                                data-titulo="Comentarios"
+                                                                                data-video-id="<%= publicacion.id %>"
+                                                                                data-metrica="comentariosTotal"
+                                                                                data-color="rgba(111, 66, 193, 0.85)"
+                                                                                data-indice="<%= index %>"></canvas>
+                                                                        </div>
                                                                     </div>
                                                                 </div>
                                                             </div>
-                                                            <div class="col-6 col-lg-3">
-                                                                <div class="border rounded-3 p-2">
-                                                                    <p class="small fw-semibold text-muted mb-1">Me
-                                                                        gusta</p>
-                                                                    <div
-                                                                        style="position: relative; height: 150px; width: 100%;">
-                                                                        <canvas class="mini-metrica-chart"
-                                                                            data-titulo="Me gusta"
-                                                                            data-video-id="<%= publicacion.id %>"
-                                                                            data-metrica="meGustaTotal"
-                                                                            data-color="rgba(25, 135, 84, 0.85)"
-                                                                            data-indice="<%= index %>"></canvas>
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-                                                            <div class="col-6 col-lg-3">
-                                                                <div class="border rounded-3 p-2">
-                                                                    <p class="small fw-semibold text-muted mb-1">No me
-                                                                        gusta</p>
-                                                                    <div
-                                                                        style="position: relative; height: 150px; width: 100%;">
-                                                                        <canvas class="mini-metrica-chart"
-                                                                            data-titulo="No me gusta"
-                                                                            data-video-id="<%= publicacion.id %>"
-                                                                            data-metrica="noMeGustaTotal"
-                                                                            data-color="rgba(220, 53, 69, 0.85)"
-                                                                            data-indice="<%= index %>"></canvas>
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-                                                            <div class="col-6 col-lg-3">
-                                                                <div class="border rounded-3 p-2">
-                                                                    <p class="small fw-semibold text-muted mb-1">
-                                                                        Comentarios</p>
-                                                                    <div
-                                                                        style="position: relative; height: 150px; width: 100%;">
-                                                                        <canvas class="mini-metrica-chart"
-                                                                            data-titulo="Comentarios"
-                                                                            data-video-id="<%= publicacion.id %>"
-                                                                            data-metrica="comentariosTotal"
-                                                                            data-color="rgba(111, 66, 193, 0.85)"
-                                                                            data-indice="<%= index %>"></canvas>
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-                                                        </div>
+                                                        </details>
 
                                                         <a href="<%= publicacion.url %>" target="_blank"
                                                             rel="noopener noreferrer"
@@ -201,8 +208,13 @@
                                 return fecha.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit' });
                             };
 
-                            const miniCharts = document.querySelectorAll('.mini-metrica-chart');
-                            miniCharts.forEach((canvas) => {
+                            const chartsInstanciados = new WeakSet();
+
+                            const crearMiniChart = (canvas) => {
+                                if (chartsInstanciados.has(canvas)) {
+                                    return;
+                                }
+
                                 const titulo = canvas.dataset.titulo || 'Métrica';
                                 const videoId = String(canvas.dataset.videoId || '');
                                 const metrica = canvas.dataset.metrica || 'vistas';
@@ -264,6 +276,25 @@
                                                 border: { display: false }
                                             }
                                         }
+                                    }
+                                });
+                                chartsInstanciados.add(canvas);
+                            };
+
+                            const inicializarChartsEnPanel = (panel) => {
+                                const miniCharts = panel.querySelectorAll('.mini-metrica-chart');
+                                miniCharts.forEach((canvas) => crearMiniChart(canvas));
+                            };
+
+                            const panelesMetricas = document.querySelectorAll('.metricas-desplegable');
+                            panelesMetricas.forEach((panel) => {
+                                if (panel.open) {
+                                    inicializarChartsEnPanel(panel);
+                                }
+
+                                panel.addEventListener('toggle', () => {
+                                    if (panel.open) {
+                                        inicializarChartsEnPanel(panel);
                                     }
                                 });
                             });

@@ -3,11 +3,10 @@ const db = require('../utils/middleware-bd');
 
 let ultimaTrazaAnalyticsConfig = 0;
 
-const getYoutubeOAuthConfig = (req) => {
+const getYoutubeOAuthConfig = () => {
     const clientId = process.env.YOUTUBE_CLIENT_ID || process.env.GOOGLE_CLIENT_ID || '';
     const clientSecret = process.env.YOUTUBE_CLIENT_SECRET || process.env.GOOGLE_CLIENT_SECRET || '';
-
-    return { clientId, clientSecret, host: req.get('host') };
+    return { clientId, clientSecret };
 };
 
 const actualizarTokensYoutube = async (correoUsuario, accessToken, expiresAt, refreshTokenOpcional) => {
@@ -28,22 +27,27 @@ const formatoFechaIso = (fecha) => {
     return `${anio}-${mes}-${dia}`;
 };
 
-const getInicioSeriePorVideo = (fechaPublicacion, fechaHoy) => {
+const getInicioSerie30Dias = (fechaHoy) => {
     const inicio30Dias = new Date(fechaHoy);
     inicio30Dias.setHours(0, 0, 0, 0);
     inicio30Dias.setDate(inicio30Dias.getDate() - 29);
+    return inicio30Dias;
+};
 
-    if (!fechaPublicacion) {
-        return inicio30Dias;
+const getRangoFechasIso = (inicio, fin) => {
+    const fechas = [];
+    const cursor = new Date(inicio);
+    cursor.setHours(0, 0, 0, 0);
+
+    const finNormalizado = new Date(fin);
+    finNormalizado.setHours(0, 0, 0, 0);
+
+    while (cursor <= finNormalizado) {
+        fechas.push(formatoFechaIso(cursor));
+        cursor.setDate(cursor.getDate() + 1);
     }
 
-    const inicioVideo = new Date(fechaPublicacion);
-    if (Number.isNaN(inicioVideo.getTime())) {
-        return inicio30Dias;
-    }
-
-    inicioVideo.setHours(0, 0, 0, 0);
-    return inicioVideo > inicio30Dias ? inicioVideo : inicio30Dias;
+    return fechas;
 };
 
 const esErrorApiAnalyticsNoHabilitada = (analyticsErr) => {
@@ -79,7 +83,7 @@ const getAccessTokenVigente = async (req, correoUsuario) => {
 
     const vinculacion = Array.isArray(filas) && filas.length > 0 ? filas[0] : null;
     if (!vinculacion || !vinculacion.access_token) {
-        return { ok: false, status: 400, error: 'No tienes YouTube vinculado' };
+        return { ok: false, error: 'No tienes YouTube vinculado' };
     }
 
     const margenRenovacionMs = 60 * 1000;
@@ -92,12 +96,12 @@ const getAccessTokenVigente = async (req, correoUsuario) => {
 
     const refreshToken = String(vinculacion.refresh_token || '').trim();
     if (!refreshToken || refreshToken.toLowerCase() === 'null') {
-        return { ok: false, status: 401, error: 'Tu vinculacion de YouTube ha expirado. Vuelve a vincular tu cuenta.' };
+        return { ok: false, error: 'Tu vinculacion de YouTube ha expirado. Vuelve a vincular tu cuenta.' };
     }
 
-    const { clientId, clientSecret } = getYoutubeOAuthConfig(req);
+    const { clientId, clientSecret } = getYoutubeOAuthConfig();
     if (!clientId || !clientSecret) {
-        return { ok: false, status: 500, error: 'Falta configuracion OAuth de YouTube en el servidor' };
+        return { ok: false, error: 'Falta configuracion OAuth de YouTube en el servidor' };
     }
 
     let tokenResponse;
@@ -124,14 +128,12 @@ const getAccessTokenVigente = async (req, correoUsuario) => {
         if (status >= 400 && status < 500) {
             return {
                 ok: false,
-                status: 401,
                 error: `No se pudo renovar el acceso de YouTube (${detalle}). Vuelve a vincular tu cuenta.`
             };
         }
 
         return {
             ok: false,
-            status: 502,
             error: 'No se pudo conectar con YouTube para renovar el token. Intentalo de nuevo en unos minutos.'
         };
     }
@@ -141,7 +143,7 @@ const getAccessTokenVigente = async (req, correoUsuario) => {
     const expiresIn = Number(tokenResponse.data?.expires_in || 3600);
 
     if (!nuevoAccessToken) {
-        return { ok: false, status: 401, error: 'No se pudo renovar el token de YouTube' };
+        return { ok: false, error: 'No se pudo renovar el token de YouTube' };
     }
 
     const nuevoExpiresAt = new Date(Date.now() + expiresIn * 1000);
@@ -231,8 +233,7 @@ const mostrarEstadisticasPublicaciones = async (req, res, next) => {
             monetizable: video.status?.license === 'youtube',
             url: `https://www.youtube.com/watch?v=${video.id}`,
             canalTitulo: video.snippet?.channelTitle || null,
-            serieTemporal: [],
-            rangoTemporal: null
+            serieTemporal: []
         }));
 
         const canal = publicaciones.find((p) => p.canalTitulo)?.canalTitulo || null;
@@ -242,14 +243,9 @@ const mostrarEstadisticasPublicaciones = async (req, res, next) => {
         hoy.setHours(0, 0, 0, 0);
 
         await Promise.all(publicaciones.map(async (publicacion) => {
-            const inicioSerie = getInicioSeriePorVideo(publicacion.fechaPublicacion, hoy);
+            const inicioSerie = getInicioSerie30Dias(hoy);
             const inicioIso = formatoFechaIso(inicioSerie);
             const finIso = formatoFechaIso(hoy);
-
-            publicacion.rangoTemporal = {
-                inicio: inicioIso,
-                fin: finIso
-            };
 
             try {
                 const analyticsVideoResponse = await axios.get('https://youtubeanalytics.googleapis.com/v2/reports', {
@@ -271,6 +267,12 @@ const mostrarEstadisticasPublicaciones = async (req, res, next) => {
                 publicacion.serieTemporal = Array.isArray(analyticsVideoResponse.data?.rows)
                     ? (() => {
                         const filas = analyticsVideoResponse.data.rows;
+                        const filasPorFecha = new Map(
+                            filas
+                                .filter((fila) => Array.isArray(fila) && fila.length >= 5 && typeof fila[0] === 'string')
+                                .map((fila) => [fila[0], fila])
+                        );
+                        const fechasRango = getRangoFechasIso(inicioSerie, hoy);
 
                         const sumaVistasRango = filas.reduce((acc, fila) => acc + Number(fila[1] || 0), 0);
                         const sumaMeGustaRango = filas.reduce((acc, fila) => acc + Number(fila[2] || 0), 0);
@@ -287,7 +289,8 @@ const mostrarEstadisticasPublicaciones = async (req, res, next) => {
                         let noMeGustaAcumulados = baseNoMeGusta;
                         let comentariosAcumulados = baseComentarios;
 
-                        return filas.map((fila) => {
+                        return fechasRango.map((fechaIso) => {
+                            const fila = filasPorFecha.get(fechaIso) || [fechaIso, 0, 0, 0, 0];
                             const vistasDia = Number(fila[1] || 0);
                             const meGustaDia = Number(fila[2] || 0);
                             const noMeGustaDia = Number(fila[3] || 0);
