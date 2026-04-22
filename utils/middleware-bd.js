@@ -21,8 +21,9 @@ module.exports = {
 }*/
 
 async function query(sql, parametros = []) {
+    let connection;
     try {
-        const connection = await pool.connect(); // conectar el pool
+        connection = await pool.connect(); // conectar el pool
         const request = connection.request();
 
         // agregar parámetros con índice
@@ -34,6 +35,8 @@ async function query(sql, parametros = []) {
         return resultado.recordset; // devuelve las filas
     } catch (err) {
         throw err;
+    } finally {
+        if (connection) connection.release();
     }
 }
 

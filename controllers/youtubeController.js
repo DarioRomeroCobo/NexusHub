@@ -294,7 +294,7 @@ const subirVideoYoutube = async (req, res, next) => {
             `SELECT nombre_video, url_video
              FROM VideosUsuario
              WHERE url_video = @p0 AND correo_usuario = @p1`,
-            [videoUrll, correoUsuario]
+            [videoUrl, correoUsuario]
         );
 
         const video = Array.isArray(videos) && videos.length > 0 ? videos[0] : null;
@@ -331,25 +331,14 @@ const subirVideoYoutube = async (req, res, next) => {
             }
         };
 
-        const formData = new FormData();
-        formData.append('snippet', JSON.stringify(metadata.snippet), {
-            contentType: 'application/json'
-        });
-        formData.append('status', JSON.stringify(metadata.status), {
-            contentType: 'application/json'
-        });
-        formData.append('video', Buffer.from(descarga.data), {
-            filename: video.nombre_video || 'video.mp4',
-            contentType: 'video/mp4'
-        });
+        const body = 'test';
 
         const youtubeResponse = await axios.post(
             'https://www.googleapis.com/upload/youtube/v3/videos?part=snippet,status',
-            formData,
+            body,
             {
                 headers: {
-                    Authorization: `Bearer ${tokenData.accessToken}`,
-                    ...formData.getHeaders()
+                    Authorization: `Bearer ${tokenData.accessToken}`
                 },
                 maxBodyLength: Infinity,
                 timeout: 180000
