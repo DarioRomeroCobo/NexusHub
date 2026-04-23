@@ -182,7 +182,47 @@ const mostrarEstadisticas = async (req, res, next) => {
     }
 };
 
+const obtenerEstadisticasYoutubeApi = async (req, res, next) => {
+    try {
+        if (req.session.isLoggedIn !== true || !req.session.correo) {
+            return res.status(401).json({ ok: false, error: 'Debes iniciar sesion para continuar' });
+        }
+
+        const correoUsuario = String(req.session.correo).trim().toLowerCase();
+        const vinculacion = await db.query(
+            `SELECT 1
+             FROM VinculacionYoutube
+             WHERE correo_usuario = @p0`,
+            [correoUsuario]
+        );
+
+        if (!Array.isArray(vinculacion) || vinculacion.length === 0) {
+            return res.status(200).json({ ok: true, redes: [] });
+        }
+
+        const resultado = await cargarEstadisticasYoutube(req, correoUsuario);
+        if (!resultado.ok) {
+            return res.status(resultado.status || 400).json({
+                ok: false,
+                error: resultado.error || 'No se pudieron cargar las estadisticas de YouTube'
+            });
+        }
+
+        return res.status(200).json({
+            ok: true,
+            redes: resultado.redes
+        });
+    } catch (err) {
+        console.error('Error al cargar estadísticas de YouTube (API):', err);
+        return res.status(500).json({
+            ok: false,
+            error: 'Error al cargar las estadisticas. Intenta nuevamente o vuelve a vincular tu cuenta.'
+        });
+    }
+};
+
 module.exports = {
     mostrarEstadisticas,
-    cargarEstadisticasYoutube
+    cargarEstadisticasYoutube,
+    obtenerEstadisticasYoutubeApi
 };
