@@ -175,7 +175,10 @@ const mostrarEstadisticas = async (req, res, next) => {
         });
     } catch (err) {
         console.error('Error al cargar estadísticas de YouTube:', err);
-        return next(err);
+        return res.render('estadisticas-redsocial', {
+            error: 'Error al cargar las estadísticas. Por favor, intenta nuevamente o vuelve a vincular tu cuenta.',
+            redes: []
+        });
     }
 };
 

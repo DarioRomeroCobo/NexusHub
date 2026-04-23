@@ -59,32 +59,43 @@ const getAccessTokenVigente = async (req, correoUsuario) => {
         return { ok: false, status: 500, error: 'Falta configuracion OAuth de YouTube en el servidor' };
     }
 
-    const tokenResponse = await axios.post(
-        'https://oauth2.googleapis.com/token',
-        new URLSearchParams({
-            client_id: clientId,
-            client_secret: clientSecret,
-            refresh_token: String(vinculacion.refresh_token),
-            grant_type: 'refresh_token'
-        }).toString(),
-        {
-            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-            timeout: 15000
+    try {
+        const tokenResponse = await axios.post(
+            'https://oauth2.googleapis.com/token',
+            new URLSearchParams({
+                client_id: clientId,
+                client_secret: clientSecret,
+                refresh_token: String(vinculacion.refresh_token),
+                grant_type: 'refresh_token'
+            }).toString(),
+            {
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                timeout: 15000
+            }
+        );
+
+        const nuevoAccessToken = tokenResponse.data?.access_token;
+        const nuevoRefreshToken = tokenResponse.data?.refresh_token;
+        const expiresIn = Number(tokenResponse.data?.expires_in || 3600);
+
+        if (!nuevoAccessToken) {
+            return { ok: false, status: 401, error: 'No se pudo renovar el token de YouTube' };
         }
-    );
 
-    const nuevoAccessToken = tokenResponse.data?.access_token;
-    const nuevoRefreshToken = tokenResponse.data?.refresh_token;
-    const expiresIn = Number(tokenResponse.data?.expires_in || 3600);
+        const nuevoExpiresAt = new Date(Date.now() + expiresIn * 1000);
+        await actualizarTokensYoutube(correoUsuario, nuevoAccessToken, nuevoExpiresAt, nuevoRefreshToken || null);
 
-    if (!nuevoAccessToken) {
-        return { ok: false, status: 401, error: 'No se pudo renovar el token de YouTube' };
+        return { ok: true, accessToken: nuevoAccessToken };
+    } catch (err) {
+        const errorData = err.response?.data;
+        const errorDesc = errorData?.error_description || errorData?.error || err.message;
+        
+        if (errorData?.error === 'invalid_grant') {
+            return { ok: false, status: 401, error: 'Tu vinculacion de YouTube ha expirado o es inválida. Por favor, vuelve a vincular tu cuenta en la sección de vinculaciones.' };
+        }
+        
+        throw err;
     }
-
-    const nuevoExpiresAt = new Date(Date.now() + expiresIn * 1000);
-    await actualizarTokensYoutube(correoUsuario, nuevoAccessToken, nuevoExpiresAt, nuevoRefreshToken || null);
-
-    return { ok: true, accessToken: nuevoAccessToken };
 };
 
 const mostrarVincularYoutube = async (req, res, next) => {
