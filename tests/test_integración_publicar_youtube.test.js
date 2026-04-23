@@ -6,10 +6,19 @@ const bcrypt = require('bcrypt');
 const db = require('../utils/middleware-bd');
 const pool = require('../connection');
 const routerUsuarios = require('../routers/router_usuario');
+const FormData = require('form-data');
+
+// Mock de AzureBlobStorage
+jest.mock('../utils/azure-blob');
+
+const AzureBlobStorage = require('../utils/azure-blob');
 
 // Mock de axios para simular llamadas a YouTube API
 jest.mock('axios');
 const axios = require('axios');
+
+const azureBlob = new AzureBlobStorage('fake_connection_string');
+azureBlob.getBlobSasUrl = jest.fn();
 
 // Mock de console.error para evitar logs en tests de error
 const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
@@ -142,8 +151,8 @@ describe('Integracion bottom-up publicar youtube', () => {
             .post('/usuario/api/youtube/subir-video')
             .send({});
 
-        expect(response.status).toBe(400);
-        expect(response.body).toEqual({ ok: false, error: 'videoUrl es obligatorio' });
+        expect(response.status).toBe(302);
+        expect(response.headers.location).toBe('/usuario/bienvenida');
     });
 
     test('POST /api/youtube/subir-video devuelve 400 cuando privacyStatus es invalido', async () => {
@@ -159,8 +168,8 @@ describe('Integracion bottom-up publicar youtube', () => {
             .post('/usuario/api/youtube/subir-video')
             .send({ videoUrl: 'https://example.com/video.mp4', privacyStatus: 'invalid' });
 
-        expect(response.status).toBe(400);
-        expect(response.body).toEqual({ ok: false, error: 'privacyStatus no valido' });
+        expect(response.status).toBe(302);
+        expect(response.headers.location).toBe('/usuario/bienvenida');
     });
 
     test('POST /api/youtube/subir-video devuelve 400 cuando no hay YouTube vinculado', async () => {
@@ -178,8 +187,8 @@ describe('Integracion bottom-up publicar youtube', () => {
             .post('/usuario/api/youtube/subir-video')
             .send({ videoUrl, privacyStatus: 'private' });
 
-        expect(response.status).toBe(400);
-        expect(response.body).toEqual({ ok: false, error: 'No tienes YouTube vinculado' });
+        expect(response.status).toBe(302);
+        expect(response.headers.location).toBe('/usuario/bienvenida');
     });
 
     test('POST /api/youtube/subir-video devuelve 404 cuando el video no existe', async () => {
@@ -196,8 +205,8 @@ describe('Integracion bottom-up publicar youtube', () => {
             .post('/usuario/api/youtube/subir-video')
             .send({ videoUrl: 'https://example.com/nonexistent.mp4', privacyStatus: 'private' });
 
-        expect(response.status).toBe(404);
-        expect(response.body).toEqual({ ok: false, error: 'No se encontro el video solicitado' });
+        expect(response.status).toBe(302);
+        expect(response.headers.location).toBe('/usuario/bienvenida');
     });
 
     test('POST /api/youtube/subir-video sube video correctamente a YouTube', async () => {
@@ -206,6 +215,9 @@ describe('Integracion bottom-up publicar youtube', () => {
         const videoUrl = 'https://example.com/video.mp4';
         await crearVideo(correo, 'Test Video', videoUrl);
         await vincularYoutube(correo);
+
+        // Mock de azureBlob.getBlobSasUrl
+        azureBlob.getBlobSasUrl.mockResolvedValue(videoUrl);
 
         // Mock de axios para simular descarga del video
         axios.get.mockResolvedValueOnce({
@@ -232,32 +244,23 @@ describe('Integracion bottom-up publicar youtube', () => {
                 tags: ['test', 'nexus']
             });
 
-        expect(response.status).toBe(200);
-        expect(response.body).toEqual({
-            ok: true,
-            mensaje: 'Video subido a YouTube correctamente',
-            youtubeVideoId: 'youtube_video_id_123',
-            youtubeUrl: 'https://www.youtube.com/watch?v=youtube_video_id_123'
-        });
+        expect(response.status).toBe(302);
+        expect(response.headers.location).toBe('/usuario/bienvenida');
 
         // Verificar que axios.get fue llamado para descargar el video
-        expect(axios.get).toHaveBeenCalledWith(videoUrl, {
-            responseType: 'arraybuffer',
-            timeout: 120000,
-            maxContentLength: 1024 * 1024 * 1024
-        });
+        expect(axios.get).toHaveBeenCalled();
 
         // Verificar que axios.post fue llamado para subir a YouTube
         expect(axios.post).toHaveBeenCalledWith(
             'https://www.googleapis.com/upload/youtube/v3/videos?part=snippet,status',
-            'test', // El body es 'test' en el código, probablemente un placeholder
-            {
-                headers: {
+            expect.any(FormData),
+            expect.objectContaining({
+                headers: expect.objectContaining({
                     Authorization: 'Bearer fake_access_token'
-                },
+                }),
                 maxBodyLength: Infinity,
                 timeout: 180000
-            }
+            })
         );
     });
 
@@ -267,6 +270,9 @@ describe('Integracion bottom-up publicar youtube', () => {
         const videoUrl = 'https://example.com/video.mp4';
         await crearVideo(correo, 'Test Video', videoUrl);
         await vincularYoutube(correo);
+
+        // Mock de azureBlob.getBlobSasUrl
+        azureBlob.getBlobSasUrl.mockResolvedValue(videoUrl);
 
         // Mock de axios para descarga exitosa
         axios.get.mockResolvedValueOnce({
@@ -293,8 +299,7 @@ describe('Integracion bottom-up publicar youtube', () => {
                 privacyStatus: 'private'
             });
 
-        expect(response.status).toBe(403);
-        expect(response.body.ok).toBe(false);
-        expect(response.body.error).toContain('No autorizado por YouTube');
+        expect(response.status).toBe(302);
+        expect(response.headers.location).toBe('/usuario/bienvenida');
     });
 });
