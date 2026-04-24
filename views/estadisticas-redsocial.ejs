@@ -102,7 +102,7 @@
 
             if (datosRedes.length > 0) {
                 // 1. Cálculos de agregación (NH-101)
-                const totalVistas = datosRedes.reduce((acc, r) => acc + (Number(r.visitas) || 0), 0);
+                const totalVistas = datosRedes.reduce((acc, r) => acc + (Number(r.vistas) || 0), 0);
                 const totalLikes = datosRedes.reduce((acc, r) => acc + (Number(r.likes) || 0), 0);
                 const totalComentarios = datosRedes.reduce((acc, r) => acc + (Number(r.comentarios) || 0), 0);
                 const suscriptores = Number(datosRedes[0].suscriptores) || 0;
