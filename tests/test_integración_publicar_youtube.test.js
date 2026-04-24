@@ -152,7 +152,7 @@ describe('Integracion bottom-up publicar youtube', () => {
             .send({});
 
         expect(response.status).toBe(302);
-        expect(response.headers.location).toBe('/usuario/bienvenida');
+        expect(response.headers.location).toBe('/');
     });
 
     test('POST /api/youtube/subir-video devuelve 400 cuando privacyStatus es invalido', async () => {
@@ -169,7 +169,7 @@ describe('Integracion bottom-up publicar youtube', () => {
             .send({ videoUrl: 'https://example.com/video.mp4', privacyStatus: 'invalid' });
 
         expect(response.status).toBe(302);
-        expect(response.headers.location).toBe('/usuario/bienvenida');
+        expect(response.headers.location).toBe('/');
     });
 
     test('POST /api/youtube/subir-video devuelve 400 cuando no hay YouTube vinculado', async () => {
@@ -188,7 +188,7 @@ describe('Integracion bottom-up publicar youtube', () => {
             .send({ videoUrl, privacyStatus: 'private' });
 
         expect(response.status).toBe(302);
-        expect(response.headers.location).toBe('/usuario/bienvenida');
+        expect(response.headers.location).toBe('/');
     });
 
     test('POST /api/youtube/subir-video devuelve 404 cuando el video no existe', async () => {
@@ -206,7 +206,7 @@ describe('Integracion bottom-up publicar youtube', () => {
             .send({ videoUrl: 'https://example.com/nonexistent.mp4', privacyStatus: 'private' });
 
         expect(response.status).toBe(302);
-        expect(response.headers.location).toBe('/usuario/bienvenida');
+        expect(response.headers.location).toBe('/');
     });
 
     test('POST /api/youtube/subir-video sube video correctamente a YouTube', async () => {
@@ -245,7 +245,7 @@ describe('Integracion bottom-up publicar youtube', () => {
             });
 
         expect(response.status).toBe(302);
-        expect(response.headers.location).toBe('/usuario/bienvenida');
+        expect(response.headers.location).toBe('/');
 
         // Verificar que axios.get fue llamado para descargar el video
         expect(axios.get).toHaveBeenCalled();
@@ -300,6 +300,6 @@ describe('Integracion bottom-up publicar youtube', () => {
             });
 
         expect(response.status).toBe(302);
-        expect(response.headers.location).toBe('/usuario/bienvenida');
+        expect(response.headers.location).toBe('/');
     });
 });

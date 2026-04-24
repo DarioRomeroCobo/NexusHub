@@ -291,18 +291,18 @@ const subirVideoYoutube = async (req, res, next) => {
 
         if (!videoUrl) {
             req.session.mensajeError = 'videoUrl es obligatorio';
-            return res.redirect('/usuario/bienvenida');
+            return res.redirect('/');
         }
 
         if (!['private', 'public', 'unlisted'].includes(privacidad)) {
             req.session.mensajeError = 'privacyStatus no válido';
-            return res.redirect('/usuario/bienvenida');
+            return res.redirect('/');
         }
 
         const tokenData = await getAccessTokenVigente(req, correoUsuario);
         if (!tokenData.ok) {
             req.session.mensajeError = tokenData.error;
-            return res.redirect('/usuario/bienvenida');
+            return res.redirect('/');
         }
 
         const videos = await db.query(
@@ -315,7 +315,7 @@ const subirVideoYoutube = async (req, res, next) => {
         const video = Array.isArray(videos) && videos.length > 0 ? videos[0] : null;
         if (!video) {
             req.session.mensajeError = 'No se encontró el video solicitado';
-            return res.redirect('/usuario/bienvenida');
+            return res.redirect('/');
         }
 
         // Generate SAS URL for download
@@ -383,12 +383,12 @@ const subirVideoYoutube = async (req, res, next) => {
 
         if (estado === 401 || estado === 403) {
             req.session.mensajeError = 'No autorizado por YouTube. Vuelve a vincular tu cuenta.';
-            return res.redirect('/usuario/bienvenida');
+            return res.redirect('/');
         }
 
         console.error('Error al subir video a YouTube:', detalle);
         req.session.mensajeError = 'No se pudo subir el video a YouTube';
-        return res.redirect('/usuario/bienvenida');
+        return res.redirect('/');
     }
 };
 

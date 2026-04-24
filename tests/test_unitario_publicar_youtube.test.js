@@ -66,14 +66,14 @@ describe('NH11 - Pruebas Unitarias de Publicación en YouTube', () => {
         test('Debe redirigir si videoUrl está vacío', async () => {
             req.body.videoUrl = '';
             await youtubeController.subirVideoYoutube(req, res, next);
-            expect(res.redirect).toHaveBeenCalledWith('/usuario/bienvenida');
+            expect(res.redirect).toHaveBeenCalledWith('/');
             expect(req.session.mensajeError).toBe('videoUrl es obligatorio');
         });
 
         test('Debe redirigir si privacyStatus no es válido', async () => {
             req.body.privacyStatus = 'invalid';
             await youtubeController.subirVideoYoutube(req, res, next);
-            expect(res.redirect).toHaveBeenCalledWith('/usuario/bienvenida');
+            expect(res.redirect).toHaveBeenCalledWith('/');
             expect(req.session.mensajeError).toBe('privacyStatus no válido');
         });
 
@@ -88,7 +88,7 @@ describe('NH11 - Pruebas Unitarias de Publicación en YouTube', () => {
                 return Promise.resolve([]);
             });
             await youtubeController.subirVideoYoutube(req, res, next);
-            expect(res.redirect).toHaveBeenCalledWith('/usuario/bienvenida');
+            expect(res.redirect).toHaveBeenCalledWith('/');
             expect(req.session.mensajeError).toBe('No se encontró el video solicitado');
         });
 
@@ -100,7 +100,7 @@ describe('NH11 - Pruebas Unitarias de Publicación en YouTube', () => {
                 return Promise.resolve([]);
             });
             await youtubeController.subirVideoYoutube(req, res, next);
-            expect(res.redirect).toHaveBeenCalledWith('/usuario/bienvenida');
+            expect(res.redirect).toHaveBeenCalledWith('/');
             expect(req.session.mensajeError).toBe('Tu vinculacion de YouTube ha expirado. Vuelve a vincular tu cuenta.');
         });
 
