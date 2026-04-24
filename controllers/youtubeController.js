@@ -331,8 +331,8 @@ const subirVideoYoutube = async (req, res, next) => {
             maxContentLength: 1024 * 1024 * 1024
         });
 
-        const titulo = String(req.body.title || video.nombre_video || 'Video NexusHub').slice(0, 100);
-        const descripcion = String(req.body.description || 'Subido desde NexusHub').slice(0, 5000);
+        const titulo = String(req.body.titulo || video.nombre_video || 'Video NexusHub').slice(0, 100);
+        const descripcion = String(req.body.descripcion || 'Subido desde NexusHub').slice(0, 5000);
         const etiquetas = Array.isArray(req.body.tags)
             ? req.body.tags
             : String(req.body.tags || '')
@@ -372,7 +372,7 @@ const subirVideoYoutube = async (req, res, next) => {
         );
 
         req.session.mensajeExito = 'Video subido a YouTube correctamente';
-        return res.redirect('/usuario/bienvenida');
+        return res.redirect('/');
     } catch (err) {
         const estado = err.response?.status;
         const detalle = err.response?.data?.error?.message || err.response?.data || err.message;
