@@ -133,7 +133,8 @@ const cargarVideo = async (req, res, next) => {
         const resultado = await azureBlob.uploadBlob('videos', nombreBlob, req.file.buffer);
 
         if (resultado.success) {
-            const urlVideo = `https://almacenamientonexushub.blob.core.windows.net/videos/${nombreBlob}`;
+            const urlVideoReal = resultado.url || `https://almacenamientonexushub.blob.core.windows.net/videos/${nombreBlob}`;
+            const urlVideo = await azureBlob.getBlobSasUrl('videos', nombreBlob);
 
             if (urlVideo.length > 255) {
                 await azureBlob.deleteBlob('videos', nombreBlob);
@@ -145,7 +146,7 @@ const cargarVideo = async (req, res, next) => {
                  VALUES (@p0, @p1, @p2, @p3, @p4)`,
                 [
                     correoUsuario,
-                    urlVideo,
+                    urlVideoReal,
                     nombreOriginalLimpio,
                     req.file.size,
                     duracionSegundos

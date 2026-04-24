@@ -287,7 +287,10 @@ const subirVideoYoutube = async (req, res, next) => {
         const correoUsuario = String(req.session.correo).trim().toLowerCase();
         const videoUrl = String(req.body.videoUrl || '').trim();
         const blobUrl = videoUrl.split('?')[0];
-        const privacidad = String(req.body.privacyStatus || 'private').toLowerCase();
+        const privacyRaw = req.body.privacyStatus;
+        const privacidad = Array.isArray(privacyRaw)
+            ? String(privacyRaw[0] || 'private').toLowerCase()
+            : String(privacyRaw || 'private').toLowerCase();
 
         if (!videoUrl) {
             req.session.mensajeError = 'videoUrl es obligatorio';
