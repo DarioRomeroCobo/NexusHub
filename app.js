@@ -73,12 +73,12 @@ const { verificarNoAutenticado } = require("./utils/middleware-auth");
 app.use("/usuario", router_usuarios);
 
 //RENDER BASICOS
+
 app.get("/", async function (req, res, next) {
-    // Redirige según estado de autenticación
     if (res.locals.isLoggedIn) {
         return res.redirect("/inicio-usuario");
     }
-    res.redirect("/bienvenida");
+    return res.render("bienvenida");
 });
 
 app.get("/bienvenida", verificarNoAutenticado, async function (req, res, next) {
@@ -107,6 +107,9 @@ app.use((req, res, next) => {
 
 app.use((err, req, res, next) => {
     console.error(err.stack);
+    if (req.originalUrl && req.originalUrl.startsWith('/usuario/api/')) {
+        return res.status(500).json({ ok: false, error: 'Error interno del servidor' });
+    }
     res.status(500).render('error', {
         titulo: 'Error interno del server',
         mensaje: 'Ups! Algo no fue bien...',

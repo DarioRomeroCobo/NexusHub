@@ -45,6 +45,16 @@ const cargarVideo = async (req, res, next) => {
             return res.status(400).json({ ok: false, error: 'No se subió ningún archivo' });
         }
 
+        if (!req.file.originalname || req.file.originalname.trim() === "" || req.file.originalname.length === 0) {
+            return res.status(400).json({ ok: false, error: 'El nombre del video es obligatorio' });
+        }
+
+        const nombreOriginalLimpio = req.file.originalname.trim();
+        const nombreSinExtension = nombreOriginalLimpio.replace(/\.[^/.]+$/, '').trim();
+        if (!nombreSinExtension) {
+            return res.status(400).json({ ok: false, error: 'El nombre del video no puede estar vacio' });
+        }
+
         if (!Number.isFinite(duracionSegundos) || duracionSegundos < 0) {
             return res.status(400).json({ ok: false, error: 'Duración de video no válida' });
         }
@@ -65,9 +75,23 @@ const cargarVideo = async (req, res, next) => {
             });
         }
 
+        const videoExistente = await db.query(
+            `SELECT * FROM VideosUsuario
+             WHERE correo_usuario = @p0 AND nombre_video = @p1`,
+            [correoUsuario, req.file.originalname]
+        );
+
+        const filasVideoExistente = videoExistente.recordset || videoExistente;
+        if (filasVideoExistente.length > 0) {
+            return res.status(400).json({
+                ok: false,
+                error: 'Ya tienes un video con ese nombre'
+            });
+        }
+
         const usuarioId = req.session.usuarioId;
         const timestamp = Date.now();
-        const nombreArchivoSeguro = req.file.originalname.replace(/[^a-zA-Z0-9._-]/g, '_');
+        const nombreArchivoSeguro = nombreOriginalLimpio.replace(/[^a-zA-Z0-9._-]/g, '_');
         const nombreBlob = `videos/${usuarioId}/${timestamp}-${nombreArchivoSeguro}`;
 
         const resultado = await azureBlob.uploadBlob('videos', nombreBlob, req.file.buffer);
@@ -86,7 +110,7 @@ const cargarVideo = async (req, res, next) => {
                 [
                     correoUsuario,
                     urlVideo,
-                    req.file.originalname,
+                    nombreOriginalLimpio,
                     req.file.size,
                     duracionSegundos
                 ]

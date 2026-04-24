@@ -62,7 +62,10 @@ const registrarUsuario = async (req, res, next) => {
                 return res.status(500).json({ ok: false, error: 'Error al guardar sesión' });
             }
 
-            res.json({ ok: true });
+            res.json({
+                ok: true,
+                mensaje: 'Usuario registrado correctamente. Redirigiendo a la pagina de inicio de sesión ...'
+            });
         });
     } catch (err) {
         console.error('Error al registrar el usuario:', err);

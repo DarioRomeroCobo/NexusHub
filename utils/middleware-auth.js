@@ -3,6 +3,9 @@ const verificarAutenticacion = (req, res, next) => {
     if (req.session.isLoggedIn === true) {
         return next();
     }
+    if (req.originalUrl.startsWith("/usuario/api/")) {
+        return res.status(401).json({ ok: false, error: "Debes iniciar sesion para continuar" });
+    }
     res.redirect("/usuario/inicio-sesion");
 };
 
