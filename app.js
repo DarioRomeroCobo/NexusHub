@@ -39,6 +39,12 @@ app.use(async (req, res, next) => {
     res.locals.isLoggedIn = req.session.isLoggedIn || false;
     res.locals.youtubeVinculado = false; // Por defecto no está vinculado
 
+    // Manejo de mensajes de éxito y error
+    res.locals.mensajeExito = req.session.mensajeExito || null;
+    res.locals.mensajeError = req.session.mensajeError || null;
+    delete req.session.mensajeExito;
+    delete req.session.mensajeError;
+
     // Si el usuario ha iniciado sesión, comprobamos si tiene Youtube vinculado
     if (res.locals.isLoggedIn && res.locals.correo) {
         try {
@@ -107,6 +113,9 @@ app.use((req, res, next) => {
 
 app.use((err, req, res, next) => {
     console.error(err.stack);
+    if (req.originalUrl && req.originalUrl.startsWith('/usuario/api/')) {
+        return res.status(500).json({ ok: false, error: 'Error interno del servidor' });
+    }
     res.status(500).render('error', {
         titulo: 'Error interno del server',
         mensaje: 'Ups! Algo no fue bien...',

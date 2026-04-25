@@ -66,7 +66,18 @@ document.addEventListener("DOMContentLoaded", () => {
                 body: formData
             });
 
-            const resultado = await response.json();
+            const contentType = response.headers.get("content-type") || "";
+            let resultado;
+            if (contentType.includes("application/json")) {
+                resultado = await response.json();
+            } else {
+                await response.text();
+                throw new Error(
+                    response.status === 401
+                        ? "Tu sesion ha expirado. Inicia sesion de nuevo."
+                        : `Respuesta inesperada del servidor (HTTP ${response.status}).`
+                );
+            }
 
             // Si hay error en el backend, lanzar excepción
             if (!response.ok || !resultado.ok) {
