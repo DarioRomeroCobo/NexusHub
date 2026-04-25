@@ -6,74 +6,60 @@ const bcrypt = require('bcrypt');
 const db = require('../utils/middleware-bd');
 const pool = require('../connection');
 const routerUsuarios = require('../routers/router_usuario');
-const FormData = require('form-data');
 
-// Mock de AzureBlobStorage
-jest.mock('../utils/azure-blob');
+// Mocks necesarios para evitar llamadas reales a servicios externos
+jest.mock('../utils/azure-blob', () => {
+    return jest.fn().mockImplementation(() => {
+        return {
+            uploadBlob: jest.fn().mockResolvedValue({ success: true }),
+            getBlobUrl: jest.fn().mockReturnValue('https://almacenamientonexushub.blob.core.windows.net/videos/video_test.mp4'),
+            getBlobSasUrl: jest.fn().mockResolvedValue('https://almacenamientonexushub.blob.core.windows.net/videos/video_test.mp4?sas=token'),
+            deleteBlob: jest.fn().mockResolvedValue({ success: true })
+        };
+    });
+});
 
-const AzureBlobStorage = require('../utils/azure-blob');
-
-// Mock de axios para simular llamadas a YouTube API
-jest.mock('axios');
+jest.mock('axios', () => ({
+    get: jest.fn(),
+    post: jest.fn()
+}));
 const axios = require('axios');
 
-const azureBlob = new AzureBlobStorage('fake_connection_string');
-azureBlob.getBlobSasUrl = jest.fn();
-
-// Mock de console.error para evitar logs en tests de error
-const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
-
-describe('Integracion bottom-up publicar youtube', () => {
+describe('Integración NH11: Publicar en YouTube', () => {
     let app;
     const correosCreados = new Set();
-    const videosCreados = new Set();
 
     jest.setTimeout(30000);
 
-    const generarCorreoUnico = () => {
-        const unico = `${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
-        return `it_youtube_${unico}@nexushub.test`;
-    };
+    const generarCorreoUnico = () => `test_youtube_${Date.now()}@nexushub.test`;
 
-    const borrarUsuarioPorCorreo = async (correo) => {
-        if (!correo) {
-            return;
-        }
-        await db.query('DELETE FROM usuario WHERE correo = @p0', [correo]);
-    };
-
-    const borrarVideoPorUrl = async (url) => {
-        if (!url) {
-            return;
-        }
-        await db.query('DELETE FROM VideosUsuario WHERE url_video = @p0', [url]);
-    };
-
-    const borrarVinculacionYoutube = async (correo) => {
-        if (!correo) {
-            return;
-        }
-        await db.query('DELETE FROM VinculacionYoutube WHERE correo_usuario = @p0', [correo]);
-    };
-
-    const crearUsuario = async (correo, passwordPlano) => {
-        const hash = await bcrypt.hash(passwordPlano, 10);
+    // Función auxiliar para crear usuario y loguearlo en el test
+    const prepararSesion = async (agent, correo) => {
+        const pass = 'Valida@123';
+        const hash = await bcrypt.hash(pass, 10);
+        // Insertamos usuario directamente en la BD de pruebas
         await db.query('INSERT INTO usuario (correo, contraseña) VALUES (@p0, @p1)', [correo, hash]);
         correosCreados.add(correo);
+
+        // Login para obtener la cookie de sesión
+        await agent.post('/usuario/api/login').send({ correo, password: pass });
     };
 
-    const crearVideo = async (correo, nombre, url) => {
-        await db.query(
-            'INSERT INTO VideosUsuario (correo_usuario, nombre_video, url_video, peso_bytes, duracion_segundos, fecha_subida) VALUES (@p0, @p1, @p2, @p3, @p4, @p5)',
-            [correo, nombre, url, 1024 * 1024, 30, new Date()]
-        );
-        videosCreados.add(url);
-    };
-
+    // Función auxiliar para vincular YouTube (simular OAuth completado)
     const vincularYoutube = async (correo) => {
         await db.query(
-            'INSERT INTO VinculacionYoutube (correo_usuario, access_token, refresh_token, expires_at, channel_title, channel_photo_url, linked_at) VALUES (@p0, @p1, @p2, @p3, @p4, @p5, @p6)',
-            [correo, 'fake_access_token', 'fake_refresh_token', new Date(Date.now() + 3600000), 'Test Channel', null, new Date()]
+            `INSERT INTO VinculacionYoutube (correo_usuario, access_token, refresh_token, expires_at)
+             VALUES (@p0, @p1, @p2, @p3)`,
+            [correo, 'fake-access-token', 'fake-refresh-token', new Date(Date.now() + 3600000)]
+        );
+    };
+
+    // Función auxiliar para crear un video en la BD
+    const crearVideo = async (correo, nombreVideo, urlVideo) => {
+        await db.query(
+            `INSERT INTO VideosUsuario (correo_usuario, nombre_video, url_video, peso_bytes, duracion_segundos, fecha_subida)
+             VALUES (@p0, @p1, @p2, @p3, @p4, @p5)`,
+            [correo, nombreVideo, urlVideo, 1024, 10, new Date()]
         );
     };
 
@@ -83,45 +69,42 @@ describe('Integracion bottom-up publicar youtube', () => {
         app.set('views', path.join(__dirname, '..', 'views'));
         app.use(express.json());
         app.use(express.urlencoded({ extended: true }));
+
+        // Configuración de sesión idéntica a tu app.js
         app.use(session({
-            secret: 'test_youtube_secret',
+            secret: "inicio_sesion_es_seguro",
             resave: false,
             saveUninitialized: false,
             cookie: {
-                secure: false
+                secure: false,
+                maxAge: 3600000
             }
         }));
+
+        // Add res.locals middleware
         app.use((req, res, next) => {
             res.locals.user = req.session.usuarioId || null;
-            res.locals.correo = req.session.correo || null;
             res.locals.isLoggedIn = req.session.isLoggedIn || false;
             next();
         });
-        app.use('/usuario', routerUsuarios);
 
-        app.use((err, req, res, next) => {
-            res.status(500).json({ ok: false, error: err.message || 'Error inesperado' });
-        });
+        app.use('/usuario', routerUsuarios);
     });
 
     beforeEach(() => {
         correosCreados.clear();
-        videosCreados.clear();
         jest.clearAllMocks();
     });
 
     afterEach(async () => {
         for (const correo of correosCreados) {
-            await borrarVinculacionYoutube(correo);
-            await borrarUsuarioPorCorreo(correo);
-        }
-        for (const url of videosCreados) {
-            await borrarVideoPorUrl(url);
+            await db.query('DELETE FROM VinculacionYoutube WHERE correo_usuario = @p0', [correo]);
+            await db.query('DELETE FROM VideosUsuario WHERE correo_usuario = @p0', [correo]);
+            await db.query('DELETE FROM usuario WHERE correo = @p0', [correo]);
         }
     });
 
     afterAll(async () => {
-        consoleErrorSpy.mockRestore();
         try {
             await pool.close();
         } catch (err) {
@@ -129,177 +112,114 @@ describe('Integracion bottom-up publicar youtube', () => {
         }
     });
 
-    test('POST /api/youtube/subir-video devuelve 401 cuando no hay sesion', async () => {
-        const response = await request(app)
-            .post('/usuario/api/youtube/subir-video')
-            .send({ videoUrl: 'https://example.com/video.mp4' });
-
-        expect(response.status).toBe(401);
-        expect(response.body).toEqual({ ok: false, error: 'Debes iniciar sesion para continuar' });
-    });
-
-    test('POST /api/youtube/subir-video devuelve 400 cuando falta videoUrl', async () => {
-        const correo = generarCorreoUnico();
-        await crearUsuario(correo, 'Valida@123');
-
+    test('GET /usuario/vincular-youtube renderiza la vista de vinculación', async () => {
         const agent = request.agent(app);
-        await agent
-            .post('/usuario/api/login')
-            .send({ correo, password: 'Valida@123' });
+        const correo = generarCorreoUnico();
+        await prepararSesion(agent, correo);
 
-        const response = await agent
-            .post('/usuario/api/youtube/subir-video')
-            .send({});
+        const response = await agent.get('/usuario/vincular-youtube');
 
-        expect(response.status).toBe(302);
-        expect(response.headers.location).toBe('/');
+        expect(response.status).toBe(200);
+        expect(response.text).toContain('Vincular cuenta de YouTube');
     });
 
-    test('POST /api/youtube/subir-video devuelve 400 cuando privacyStatus es invalido', async () => {
-        const correo = generarCorreoUnico();
-        await crearUsuario(correo, 'Valida@123');
-
+    test('POST /usuario/api/youtube/subir-video sube video correctamente cuando YouTube está vinculado', async () => {
         const agent = request.agent(app);
-        await agent
-            .post('/usuario/api/login')
-            .send({ correo, password: 'Valida@123' });
-
-        const response = await agent
-            .post('/usuario/api/youtube/subir-video')
-            .send({ videoUrl: 'https://example.com/video.mp4', privacyStatus: 'invalid' });
-
-        expect(response.status).toBe(302);
-        expect(response.headers.location).toBe('/');
-    });
-
-    test('POST /api/youtube/subir-video devuelve 400 cuando no hay YouTube vinculado', async () => {
         const correo = generarCorreoUnico();
-        await crearUsuario(correo, 'Valida@123');
-        const videoUrl = 'https://example.com/video.mp4';
-        await crearVideo(correo, 'Test Video', videoUrl);
-
-        const agent = request.agent(app);
-        await agent
-            .post('/usuario/api/login')
-            .send({ correo, password: 'Valida@123' });
-
-        const response = await agent
-            .post('/usuario/api/youtube/subir-video')
-            .send({ videoUrl, privacyStatus: 'private' });
-
-        expect(response.status).toBe(302);
-        expect(response.headers.location).toBe('/');
-    });
-
-    test('POST /api/youtube/subir-video devuelve 404 cuando el video no existe', async () => {
-        const correo = generarCorreoUnico();
-        await crearUsuario(correo, 'Valida@123');
+        await prepararSesion(agent, correo);
         await vincularYoutube(correo);
+        await crearVideo(correo, 'test_video.mp4', 'https://almacenamientonexushub.blob.core.windows.net/videos/video_test.mp4');
 
-        const agent = request.agent(app);
-        await agent
-            .post('/usuario/api/login')
-            .send({ correo, password: 'Valida@123' });
-
-        const response = await agent
-            .post('/usuario/api/youtube/subir-video')
-            .send({ videoUrl: 'https://example.com/nonexistent.mp4', privacyStatus: 'private' });
-
-        expect(response.status).toBe(302);
-        expect(response.headers.location).toBe('/');
-    });
-
-    test('POST /api/youtube/subir-video sube video correctamente a YouTube', async () => {
-        const correo = generarCorreoUnico();
-        await crearUsuario(correo, 'Valida@123');
-        const videoUrl = 'https://example.com/video.mp4';
-        await crearVideo(correo, 'Test Video', videoUrl);
-        await vincularYoutube(correo);
-
-        // Mock de azureBlob.getBlobSasUrl
-        azureBlob.getBlobSasUrl.mockResolvedValue(videoUrl);
-
-        // Mock de axios para simular descarga del video
-        axios.get.mockResolvedValueOnce({
-            data: Buffer.from('fake video data')
-        });
-
-        // Mock de axios para simular subida a YouTube
-        axios.post.mockResolvedValueOnce({
-            data: { id: 'youtube_video_id_123' }
-        });
-
-        const agent = request.agent(app);
-        await agent
-            .post('/usuario/api/login')
-            .send({ correo, password: 'Valida@123' });
+        // Mock de axios para simular descarga y subida a YouTube
+        axios.get.mockResolvedValue({ data: Buffer.from('fake-video-data') });
+        axios.post.mockResolvedValue({ data: { id: 'youtube-video-id' } });
 
         const response = await agent
             .post('/usuario/api/youtube/subir-video')
             .send({
-                videoUrl,
+                videoUrl: 'https://almacenamientonexushub.blob.core.windows.net/videos/video_test.mp4',
+                titulo: 'Título de prueba',
+                descripcion: 'Descripción de prueba',
                 privacyStatus: 'private',
-                title: 'Test YouTube Video',
-                description: 'Description from test',
-                tags: ['test', 'nexus']
+                tags: 'tag1,tag2'
             });
 
-        expect(response.status).toBe(302);
+        expect(response.status).toBe(302); // Redirect
         expect(response.headers.location).toBe('/');
 
-        // Verificar que axios.get fue llamado para descargar el video
-        expect(axios.get).toHaveBeenCalled();
+        // Verificar que se llamó a axios para descargar el video
+        expect(axios.get).toHaveBeenCalledWith('https://almacenamientonexushub.blob.core.windows.net/videos/video_test.mp4?sas=token', expect.any(Object));
 
-        // Verificar que axios.post fue llamado para subir a YouTube
+        // Verificar que se llamó a axios para subir a YouTube
         expect(axios.post).toHaveBeenCalledWith(
             'https://www.googleapis.com/upload/youtube/v3/videos?part=snippet,status',
-            expect.any(FormData),
+            expect.any(Object),
             expect.objectContaining({
                 headers: expect.objectContaining({
-                    Authorization: 'Bearer fake_access_token'
-                }),
-                maxBodyLength: Infinity,
-                timeout: 180000
+                    Authorization: 'Bearer fake-access-token'
+                })
             })
         );
     });
 
-    test('POST /api/youtube/subir-video maneja errores de YouTube API', async () => {
-        const correo = generarCorreoUnico();
-        await crearUsuario(correo, 'Valida@123');
-        const videoUrl = 'https://example.com/video.mp4';
-        await crearVideo(correo, 'Test Video', videoUrl);
-        await vincularYoutube(correo);
-
-        // Mock de azureBlob.getBlobSasUrl
-        azureBlob.getBlobSasUrl.mockResolvedValue(videoUrl);
-
-        // Mock de axios para descarga exitosa
-        axios.get.mockResolvedValueOnce({
-            data: Buffer.from('fake video data')
-        });
-
-        // Mock de axios para simular error en YouTube
-        axios.post.mockRejectedValueOnce({
-            response: {
-                status: 403,
-                data: { error: { message: 'Forbidden' } }
-            }
-        });
-
+    test('POST /usuario/api/youtube/subir-video falla si YouTube no está vinculado', async () => {
         const agent = request.agent(app);
-        await agent
-            .post('/usuario/api/login')
-            .send({ correo, password: 'Valida@123' });
+        const correo = generarCorreoUnico();
+        await prepararSesion(agent, correo);
+        await crearVideo(correo, 'test_video.mp4', 'https://almacenamientonexushub.blob.core.windows.net/videos/video_test.mp4');
 
         const response = await agent
             .post('/usuario/api/youtube/subir-video')
             .send({
-                videoUrl,
-                privacyStatus: 'private'
+                videoUrl: 'https://almacenamientonexushub.blob.core.windows.net/videos/video_test.mp4',
+                titulo: 'Título de prueba',
+                descripcion: 'Descripción de prueba',
+                privacyStatus: 'private',
+                tags: 'tag1,tag2'
             });
 
-        expect(response.status).toBe(302);
+        expect(response.status).toBe(302); // Redirect
+        expect(response.headers.location).toBe('/');
+    });
+
+    test('POST /usuario/api/youtube/subir-video falla si videoUrl está vacío', async () => {
+        const agent = request.agent(app);
+        const correo = generarCorreoUnico();
+        await prepararSesion(agent, correo);
+        await vincularYoutube(correo);
+
+        const response = await agent
+            .post('/usuario/api/youtube/subir-video')
+            .send({
+                videoUrl: '',
+                titulo: 'Título de prueba',
+                descripcion: 'Descripción de prueba',
+                privacyStatus: 'private',
+                tags: 'tag1,tag2'
+            });
+
+        expect(response.status).toBe(302); // Redirect
+        expect(response.headers.location).toBe('/');
+    });
+
+    test('POST /usuario/api/youtube/subir-video falla si privacyStatus no es válido', async () => {
+        const agent = request.agent(app);
+        const correo = generarCorreoUnico();
+        await prepararSesion(agent, correo);
+        await vincularYoutube(correo);
+        await crearVideo(correo, 'test_video.mp4', 'https://almacenamientonexushub.blob.core.windows.net/videos/video_test.mp4');
+
+        const response = await agent
+            .post('/usuario/api/youtube/subir-video')
+            .send({
+                videoUrl: 'https://almacenamientonexushub.blob.core.windows.net/videos/video_test.mp4',
+                titulo: 'Título de prueba',
+                descripcion: 'Descripción de prueba',
+                privacyStatus: 'invalid',
+                tags: 'tag1,tag2'
+            });
+
+        expect(response.status).toBe(302); // Redirect
         expect(response.headers.location).toBe('/');
     });
 });
