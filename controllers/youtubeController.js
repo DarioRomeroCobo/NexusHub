@@ -375,7 +375,7 @@ const subirVideoYoutube = async (req, res, next) => {
         );
 
         req.session.mensajeExito = 'Video subido a YouTube correctamente';
-        return res.redirect('/');
+        return res.redirect('/usuario/publicar-video');
     } catch (err) {
         const estado = err.response?.status;
         const detalle = err.response?.data?.error?.message || err.response?.data || err.message;

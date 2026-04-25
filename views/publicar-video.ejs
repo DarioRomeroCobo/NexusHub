@@ -6,7 +6,21 @@
 
     <%- include("fragments/header") %>
     <%- include("fragments/navbar") %>
-
+    <!-- Mensajes de éxito y error -->
+    <% if (locals.mensajeExito) { %>
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="fa-solid fa-check-circle me-2"></i>
+            <%= mensajeExito %>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    <% } %>
+    <% if (locals.mensajeError) { %>
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="fa-solid fa-exclamation-triangle me-2"></i>
+            <%= mensajeError %>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    <% } %>
     <main class="flex-grow-1 py-5">
         <div class="container">
 
