@@ -302,6 +302,14 @@ const subirVideoYoutube = async (req, res, next) => {
             return res.redirect('/');
         }
 
+        const tituloRaw = String(req.body.titulo || '').trim();
+        const descripcionRaw = String(req.body.descripcion || '').trim();
+
+        if (!tituloRaw || !descripcionRaw) {
+            req.session.mensajeError = 'Debes completar el título y la descripción antes de publicar en YouTube';
+            return res.redirect(`/usuario/publicacion-video?videoUrl=${encodeURIComponent(videoUrl)}`);
+        }
+
         const tokenData = await getAccessTokenVigente(req, correoUsuario);
         if (!tokenData.ok) {
             req.session.mensajeError = tokenData.error;
@@ -334,8 +342,8 @@ const subirVideoYoutube = async (req, res, next) => {
             maxContentLength: 1024 * 1024 * 1024
         });
 
-        const titulo = String(req.body.titulo || video.nombre_video || 'Video NexusHub').slice(0, 100);
-        const descripcion = String(req.body.descripcion || 'Subido desde NexusHub').slice(0, 5000);
+        const titulo = String(req.body.titulo || '').trim().slice(0, 100);
+        const descripcion = String(req.body.descripcion || '').trim().slice(0, 5000);
         const etiquetas = Array.isArray(req.body.tags)
             ? req.body.tags
             : String(req.body.tags || '')
@@ -375,7 +383,7 @@ const subirVideoYoutube = async (req, res, next) => {
         );
 
         req.session.mensajeExito = 'Video subido a YouTube correctamente';
-        return res.redirect('/usuario/publicar-video');
+        return res.redirect('/');
     } catch (err) {
         const estado = err.response?.status;
         const detalle = err.response?.data?.error?.message || err.response?.data || err.message;

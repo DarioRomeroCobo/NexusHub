@@ -77,6 +77,16 @@ describe('NH11 - Pruebas Unitarias de Publicación en YouTube', () => {
             expect(req.session.mensajeError).toBe('privacyStatus no válido');
         });
 
+        test('Debe redirigir si el título o descripción están vacíos', async () => {
+            req.body.titulo = '   ';
+            req.body.descripcion = '';
+
+            await youtubeController.subirVideoYoutube(req, res, next);
+
+            expect(res.redirect).toHaveBeenCalledWith(`/usuario/publicacion-video?videoUrl=${encodeURIComponent(req.body.videoUrl)}`);
+            expect(req.session.mensajeError).toBe('Debes completar el título y la descripción antes de publicar en YouTube');
+        });
+
         test('Debe redirigir si no se encuentra el video en la base de datos', async () => {
             db.query.mockImplementation((query, params) => {
                 if (query.includes('SELECT access_token')) {

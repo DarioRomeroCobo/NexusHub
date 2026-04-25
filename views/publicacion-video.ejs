@@ -6,6 +6,27 @@
     <%- include("fragments/header") %>
     <%- include("fragments/navbar") %>
 
+    <% if (locals.mensajeExito) { %>
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="fa-solid fa-check-circle me-2"></i>
+            <%= mensajeExito %>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    <% } %>
+    <% if (locals.mensajeError) { %>
+        <div id="mensajeError" class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="fa-solid fa-exclamation-triangle me-2"></i>
+            <%= mensajeError %>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    <% } else { %>
+        <div id="mensajeError" class="alert alert-danger d-none alert-dismissible fade show" role="alert">
+            <i class="fa-solid fa-exclamation-triangle me-2"></i>
+            <span class="mensaje-texto"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    <% } %>
+
     <main class="flex-grow-1 publicacion-video-page py-5">
         <div class="container">
             <section class="mb-4 publicacion-video-hero rounded-4 p-4 p-md-5 shadow-sm text-white" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
@@ -129,6 +150,31 @@
                         }
                     }
                 });
+            });
+        }
+
+        const formPublicacion = document.getElementById('form-publicacion-video');
+        const tituloInput = document.getElementById('titulo-video');
+        const descripcionInput = document.getElementById('descripcion-video');
+        const mensajeErrorBox = document.getElementById('mensajeError');
+        const mensajeTexto = mensajeErrorBox?.querySelector('.mensaje-texto');
+
+        if (formPublicacion && tituloInput && descripcionInput && mensajeErrorBox) {
+            formPublicacion.addEventListener('submit', (event) => {
+                const titulo = tituloInput.value.trim();
+                const descripcion = descripcionInput.value.trim();
+
+                if (!titulo || !descripcion) {
+                    event.preventDefault();
+                    mensajeErrorBox.classList.remove('d-none');
+                    mensajeErrorBox.classList.add('alert', 'alert-danger', 'fade', 'show');
+                    if (mensajeTexto) {
+                        mensajeTexto.textContent = 'Debes completar el título y la descripción antes de publicar en YouTube.';
+                    } else {
+                        mensajeErrorBox.innerHTML = '<i class="fa-solid fa-exclamation-triangle me-2"></i>Debes completar el título y la descripción antes de publicar en YouTube.<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>';
+                    }
+                    mensajeErrorBox.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
             });
         }
     </script>
