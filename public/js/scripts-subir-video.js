@@ -3,37 +3,26 @@ document.addEventListener("DOMContentLoaded", () => {
     const MIMETYPES_PERMITIDOS = ["video/mp4", "video/quicktime"];
     const TAMANO_MAXIMO_BYTES = 256 * 1024 * 1024 * 1024;
 
-
-    //Referencias a elementos del DOM
     const botonSubir = document.getElementById("btn-subir-nuevo-video");
     const inputVideo = document.getElementById("input-video");
     const formulario = document.getElementById("form-subir-video");
     const feedback = document.getElementById("subida-feedback");
 
-    // Si falta algún elemento, se detiene la ejecución
-    if (!botonSubir || !inputVideo || !formulario || !feedback) {
-        return;
-    }
+    if (!botonSubir || !inputVideo || !formulario || !feedback) return;
 
-    //Se abre el selector de archivos al hacer click en el botón
     botonSubir.addEventListener("click", () => {
         inputVideo.click();
     });
 
-    //Cuando el usuario selecciona un archivo
     inputVideo.addEventListener("change", async () => {
-        // Si no hay archivo seleccionado, salir
-        if (!inputVideo.files || inputVideo.files.length === 0) {
-            return;
-        }
+        if (!inputVideo.files || inputVideo.files.length === 0) return;
 
         const archivoVideo = inputVideo.files[0];
 
-
         feedback.classList.add("d-none");
+        // Aseguramos que al limpiar no pierda la clase text-white que añadiremos en el EJS
         feedback.classList.remove("alert-danger", "alert-success");
 
-        //Validación del archivo
         const resultadoValidacion = validarArchivoVideo(
             archivoVideo,
             EXTENSIONES_PERMITIDAS,
@@ -41,22 +30,21 @@ document.addEventListener("DOMContentLoaded", () => {
             TAMANO_MAXIMO_BYTES
         );
 
-        //Si validación falla, mostrar error y cancelar
         if (!resultadoValidacion.ok) {
             feedback.textContent = resultadoValidacion.error;
             feedback.classList.remove("d-none");
-            feedback.classList.add("alert-danger");
+            feedback.classList.add("alert-danger", "text-white"); // Añadido text-white
             inputVideo.value = "";
             return;
         }
 
-        //Crear FormData para enviar al backend
         const formData = new FormData(formulario);
 
         try {
-            //Se deshabilita el botón para evitar múltiples envíos
             botonSubir.disabled = true;
-            botonSubir.textContent = "Subiendo...";
+            // Cambio: Usamos innerHTML para meter un spinner y forzar el color blanco
+            botonSubir.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Subiendo...';
+            botonSubir.classList.add("text-white");
 
             const duracionSegundos = await obtenerDuracionSegundos(archivoVideo);
             formData.set("duracion_segundos", String(duracionSegundos));
@@ -71,38 +59,35 @@ document.addEventListener("DOMContentLoaded", () => {
             if (contentType.includes("application/json")) {
                 resultado = await response.json();
             } else {
-                await response.text();
-                throw new Error(
-                    response.status === 401
-                        ? "Tu sesion ha expirado. Inicia sesion de nuevo."
-                        : `Respuesta inesperada del servidor (HTTP ${response.status}).`
-                );
+                throw new Error("Respuesta inesperada del servidor.");
             }
 
-            // Si hay error en el backend, lanzar excepción
             if (!response.ok || !resultado.ok) {
                 throw new Error(resultado.error || "No se pudo subir el video");
             }
 
             feedback.textContent = resultado.mensaje || "Video subido correctamente";
             feedback.classList.remove("d-none");
-            feedback.classList.add("alert-success");
+            feedback.classList.add("alert-success", "text-white"); // Añadido text-white
 
-            //recargar la página tras subir el vídeo
             setTimeout(() => {
                 window.location.reload();
             }, 1200);
+
         } catch (error) {
             feedback.textContent = error.message || "Error interno al subir el video";
             feedback.classList.remove("d-none");
-            feedback.classList.add("alert-danger");
+            feedback.classList.add("alert-danger", "text-white"); // Añadido text-white
         } finally {
             botonSubir.disabled = false;
-            botonSubir.textContent = "Subir nuevo video";
+            botonSubir.innerHTML = "Subir nuevo video"; // Restauramos texto
+            botonSubir.classList.add("text-white");
             inputVideo.value = "";
         }
     });
 });
+
+// ... (Las funciones validarArchivoVideo y obtenerDuracionSegundos se quedan igual)
 
 //Función para validar el archivo de vídeo
 function validarArchivoVideo(archivoVideo, extensionesPermitidas, mimeTypesPermitidos, tamanoMaximoBytes) {
@@ -149,3 +134,117 @@ function obtenerDuracionSegundos(archivoVideo) {
         };
     });
 }
+
+
+
+
+
+
+
+
+
+// document.addEventListener("DOMContentLoaded", () => {
+//     const EXTENSIONES_PERMITIDAS = [".mp4", ".mov"];
+//     const MIMETYPES_PERMITIDOS = ["video/mp4", "video/quicktime"];
+//     const TAMANO_MAXIMO_BYTES = 256 * 1024 * 1024 * 1024;
+
+
+//     //Referencias a elementos del DOM
+//     const botonSubir = document.getElementById("btn-subir-nuevo-video");
+//     const inputVideo = document.getElementById("input-video");
+//     const formulario = document.getElementById("form-subir-video");
+//     const feedback = document.getElementById("subida-feedback");
+
+//     // Si falta algún elemento, se detiene la ejecución
+//     if (!botonSubir || !inputVideo || !formulario || !feedback) {
+//         return;
+//     }
+
+//     //Se abre el selector de archivos al hacer click en el botón
+//     botonSubir.addEventListener("click", () => {
+//         inputVideo.click();
+//     });
+
+//     //Cuando el usuario selecciona un archivo
+//     inputVideo.addEventListener("change", async () => {
+//         // Si no hay archivo seleccionado, salir
+//         if (!inputVideo.files || inputVideo.files.length === 0) {
+//             return;
+//         }
+
+//         const archivoVideo = inputVideo.files[0];
+
+
+//         feedback.classList.add("d-none");
+//         feedback.classList.remove("alert-danger", "alert-success");
+
+//         //Validación del archivo
+//         const resultadoValidacion = validarArchivoVideo(
+//             archivoVideo,
+//             EXTENSIONES_PERMITIDAS,
+//             MIMETYPES_PERMITIDOS,
+//             TAMANO_MAXIMO_BYTES
+//         );
+
+//         //Si validación falla, mostrar error y cancelar
+//         if (!resultadoValidacion.ok) {
+//             feedback.textContent = resultadoValidacion.error;
+//             feedback.classList.remove("d-none");
+//             feedback.classList.add("alert-danger");
+//             inputVideo.value = "";
+//             return;
+//         }
+
+//         //Crear FormData para enviar al backend
+//         const formData = new FormData(formulario);
+
+//         try {
+//             //Se deshabilita el botón para evitar múltiples envíos
+//             botonSubir.disabled = true;
+//             botonSubir.textContent = "Subiendo...";
+
+//             const duracionSegundos = await obtenerDuracionSegundos(archivoVideo);
+//             formData.set("duracion_segundos", String(duracionSegundos));
+
+//             const response = await fetch("/usuario/api/cargar-video", {
+//                 method: "POST",
+//                 body: formData
+//             });
+
+//             const contentType = response.headers.get("content-type") || "";
+//             let resultado;
+//             if (contentType.includes("application/json")) {
+//                 resultado = await response.json();
+//             } else {
+//                 await response.text();
+//                 throw new Error(
+//                     response.status === 401
+//                         ? "Tu sesion ha expirado. Inicia sesion de nuevo."
+//                         : `Respuesta inesperada del servidor (HTTP ${response.status}).`
+//                 );
+//             }
+
+//             // Si hay error en el backend, lanzar excepción
+//             if (!response.ok || !resultado.ok) {
+//                 throw new Error(resultado.error || "No se pudo subir el video");
+//             }
+
+//             feedback.textContent = resultado.mensaje || "Video subido correctamente";
+//             feedback.classList.remove("d-none");
+//             feedback.classList.add("alert-success");
+
+//             //recargar la página tras subir el vídeo
+//             setTimeout(() => {
+//                 window.location.reload();
+//             }, 1200);
+//         } catch (error) {
+//             feedback.textContent = error.message || "Error interno al subir el video";
+//             feedback.classList.remove("d-none");
+//             feedback.classList.add("alert-danger");
+//         } finally {
+//             botonSubir.disabled = false;
+//             botonSubir.textContent = "Subir nuevo video";
+//             inputVideo.value = "";
+//         }
+//     });
+// });
