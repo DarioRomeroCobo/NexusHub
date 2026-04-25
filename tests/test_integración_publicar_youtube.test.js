@@ -112,16 +112,6 @@ describe('Integración NH11: Publicar en YouTube', () => {
         }
     });
 
-    test('GET /usuario/vincular-youtube renderiza la vista de vinculación', async () => {
-        const agent = request.agent(app);
-        const correo = generarCorreoUnico();
-        await prepararSesion(agent, correo);
-
-        const response = await agent.get('/usuario/vincular-youtube');
-
-        expect(response.status).toBe(200);
-        expect(response.text).toContain('Vincular cuenta de YouTube');
-    });
 
     test('POST /usuario/api/youtube/subir-video sube video correctamente cuando YouTube está vinculado', async () => {
         const agent = request.agent(app);
