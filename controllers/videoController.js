@@ -32,6 +32,79 @@ const mostrarSubirVideo = async (req, res, next) => {
     }
 };
 
+const mostrarSubirFoto = async (req, res, next) => {
+    try {
+        const correoUsuario = (req.session.correo || '').trim().toLowerCase();
+        const fotosRaw = await db.query(
+            `SELECT correo_usuario, url_foto, nombre_foto, peso_bytes, fecha_subida
+             FROM FotosUsuario
+             WHERE correo_usuario = @p0
+             ORDER BY fecha_subida DESC`,
+            [correoUsuario]
+        );
+
+        const fotos = (fotosRaw || []).map((foto) => ({
+            nombre: foto.nombre_foto,
+            pesoMB: (Number(foto.peso_bytes || 0) / (1024 * 1024)).toFixed(2),
+            fecha: foto.fecha_subida,
+            url: foto.url_foto
+        }));
+
+        res.render('subir-foto', {
+            fotos,
+            totalFotos: fotos.length
+        });
+    } catch (err) {
+        next(err);
+    }
+};
+
+const mostrarSubirArchivo = async (req, res, next) => {
+    try {
+        const correoUsuario = (req.session.correo || '').trim().toLowerCase();
+        const videosRaw = await db.query(
+            `SELECT correo_usuario, url_video, nombre_video, peso_bytes, duracion_segundos, fecha_subida
+             FROM VideosUsuario
+             WHERE correo_usuario = @p0
+             ORDER BY fecha_subida DESC`,
+            [correoUsuario]
+        );
+
+        const fotosRaw = await db.query(
+            `SELECT correo_usuario, url_foto, nombre_foto, peso_bytes, fecha_subida
+             FROM FotosUsuario
+             WHERE correo_usuario = @p0
+             ORDER BY fecha_subida DESC`,
+            [correoUsuario]
+        );
+
+        const videos = (videosRaw || []).map((video) => ({
+            nombre: video.nombre_video,
+            pesoMB: (Number(video.peso_bytes || 0) / (1024 * 1024)).toFixed(2),
+            fecha: video.fecha_subida,
+            duracionSegundos: Number(video.duracion_segundos || 0),
+            url: video.url_video
+        }));
+
+        const fotos = (fotosRaw || []).map((foto) => ({
+            nombre: foto.nombre_foto,
+            pesoMB: (Number(foto.peso_bytes || 0) / (1024 * 1024)).toFixed(2),
+            fecha: foto.fecha_subida,
+            url: foto.url_foto
+        }));
+
+
+        res.render('subir-archivo', {
+            videos,
+            totalVideos: videos.length,
+            fotos,
+            totalFotos: fotos.length
+        });
+    } catch (err) {
+        next(err);
+    }
+};
+
 const cargarVideo = async (req, res, next) => {
     try {
         if (req.session.isLoggedIn !== true || !req.session.usuarioId) {
@@ -280,6 +353,8 @@ const cargarArchivo = async (req, res, next) => {
 
 module.exports = {
     mostrarSubirVideo,
+    mostrarSubirFoto,
+    mostrarSubirArchivo,
     cargarVideo,
     cargarFoto,
     cargarArchivo
