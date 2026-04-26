@@ -12,6 +12,27 @@
                 <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
                     <div>
                         <h1 class="h3 h2-md fw-bold mb-1 text-white">Tus videos</h1>
+                        <p class="mb-0 text-white" style="opacity: 0.85;">Aquí puedes gestionar todos los videos que has subido.</p>
+                    </div>
+
+                    <div class="text-end">
+                        <button id="btn-subir-nuevo-video" type="button" class="btn btn-gradient rounded-pill fw-semibold px-4 py-2 text-white">
+                        Subir nuevo video
+                        </button>
+                    </div>
+                </div>
+
+                <div id="subida-feedback" class="alert mt-3 mb-0 d-none text-white border-0 shadow-sm" role="alert"></div>
+
+                <form id="form-subir-video" class="d-none" enctype="multipart/form-data">
+                    <input id="input-video" type="file" name="video" accept="video/mp4,video/quicktime,.mp4,.mov">
+                </form>
+            </section>
+
+            <!-- <section class="subir-video-hero rounded-4 p-4 p-md-5 mb-4 shadow-sm">
+                <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
+                    <div>
+                        <h1 class="h3 h2-md fw-bold mb-1 text-white">Tus videos</h1>
                         <p class="mb-0 text-white-50">Aquí puedes gestionar todos los videos que has subido.</p>
                     </div>
 
@@ -27,7 +48,7 @@
                 <form id="form-subir-video" class="d-none" enctype="multipart/form-data">
                     <input id="input-video" type="file" name="video" accept="video/mp4,video/quicktime,.mp4,.mov">
                 </form>
-            </section>
+            </section>  -->
 
             <section class="card border-0 shadow-sm rounded-4 p-3 p-md-4 bg-white">
                 <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
