@@ -205,7 +205,7 @@ describe('callbackYoutubeOAuth', () => {
         await callbackYoutubeOAuth(req, res, next);
 
         expect(req.session.youtubeOAuthState).toBeNull();
-        expect(res.redirect).toHaveBeenCalledWith('/usuario/vincular-youtube');
+        expect(res.redirect).toHaveBeenCalledWith('/usuario/vincular-youtube?error=1');
         expect(axios.post).not.toHaveBeenCalled();
         expect(next).not.toHaveBeenCalled();
     });
@@ -230,7 +230,7 @@ describe('callbackYoutubeOAuth', () => {
 
         await callbackYoutubeOAuth(req, res, next);
 
-        expect(res.redirect).toHaveBeenCalledWith('/usuario/vincular-youtube');
+        expect(res.redirect).toHaveBeenCalledWith('/usuario/vincular-youtube?error=1');
         expect(db.query).not.toHaveBeenCalled();
         expect(next).not.toHaveBeenCalled();
     });
