@@ -232,8 +232,55 @@ const cargarFoto = async (req, res, next) => {
     }
 };
 
+const cargarArchivo = async (req, res, next) => {
+    try {
+        if (req.session.isLoggedIn !== true || !req.session.usuarioId) {
+            return res.status(401).json({ ok: false, error: 'Debes iniciar sesión para subir archivos' });
+        }
+
+        const correoUsuario = (req.session.correo || '').trim().toLowerCase();
+
+        if (!req.file) {
+            return res.status(400).json({ ok: false, error: 'No se subió ningún archivo' });
+        }
+
+        if (!req.file.originalname || req.file.originalname.trim() === "" || req.file.originalname.length === 0) {
+            return res.status(400).json({ ok: false, error: 'El nombre del archivo es obligatorio' });
+        }
+
+        const nombreOriginalLimpio = req.file.originalname.trim();
+        const nombreSinExtension = nombreOriginalLimpio.replace(/\.[^/.]+$/, '').trim();
+        if (!nombreSinExtension) {
+            return res.status(400).json({ ok: false, error: 'El nombre del archivo no puede estar vacio' });
+        }
+
+        const tiposVideos = ['video/mp4', 'video/quicktime'];
+        const tiposFotos = ['image/jpg', 'image/png'];
+
+        if (!tiposVideos.includes(req.file.mimetype) && !tiposFotos.includes(req.file.mimetype)) {
+            return res.status(400).json({
+                ok: false,
+                error: 'Solo se archivos de video (mp4, mov) o fotos (jpg, png) son permitidos'
+            });
+        }
+        else if (tiposVideos.includes(req.file.mimetype)) {
+            cargarVideo(req, res, next);
+            return;
+        }
+        else if (tiposFotos.includes(req.file.mimetype)) {
+            cargarFoto(req, res, next);
+            return;
+        }
+
+    } catch (err) {
+        console.error('Error al cargar archivo:', err);
+        return res.status(500).json({ ok: false, error: 'Error interno del servidor' });
+    }
+};
+
 module.exports = {
     mostrarSubirVideo,
     cargarVideo,
-    cargarFoto
+    cargarFoto,
+    cargarArchivo
 };
