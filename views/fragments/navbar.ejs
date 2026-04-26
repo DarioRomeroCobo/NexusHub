@@ -51,6 +51,18 @@
                     </a>
                 <% } %>
 
+                <% if (locals.tiktokVinculado) { %>
+                    <a href="/usuario/vincular-tiktok"
+                        class="btn btn-success px-4 py-2 rounded-pill fw-semibold me-2">
+                        ✓ TikTok vinculado
+                    </a>
+                <% } else { %>
+                    <a href="/usuario/vincular-tiktok"
+                        class="btn btn-gradient px-4 py-2 rounded-pill fw-semibold me-2">
+                        Vincular TikTok
+                    </a>
+                <% } %>
+
                 <a href="/usuario/logout"
                     class="btn btn-sm rounded-pill btn-outline-danger">
                     Cerrar sesión

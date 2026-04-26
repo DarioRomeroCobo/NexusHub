@@ -29,6 +29,10 @@ const {
     subirVideoYoutube
 } = require('../controllers/youtubeController');
 
+const {
+    mostrarVincularTiktok
+} = require('../controllers/tiktokController');
+
 const { verificarAutenticacion, verificarNoAutenticado } = require("../utils/middleware-auth");
 const upload = multer({ storage: multer.memoryStorage() });
 
@@ -45,6 +49,7 @@ router.get("/inicio", verificarAutenticacion, mostrarInicioUsuario);
 router.post("/api/cargar-video", verificarAutenticacion, upload.single('video'), cargarVideo);
 
 router.get("/vincular-youtube", verificarAutenticacion, mostrarVincularYoutube);
+router.get("/vincular-tiktok", verificarAutenticacion, mostrarVincularTiktok);
 router.get("/youtube/auth", verificarAutenticacion, iniciarVinculacionYoutube);
 router.get("/youtube/callback", verificarAutenticacion, callbackYoutubeOAuth);
 router.post("/youtube/desvincular", verificarAutenticacion, desvincularYoutube);
