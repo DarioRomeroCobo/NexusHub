@@ -92,15 +92,15 @@ const cargarVideo = async (req, res, next) => {
         const usuarioId = req.session.usuarioId;
         const timestamp = Date.now();
         const nombreArchivoSeguro = nombreOriginalLimpio.replace(/[^a-zA-Z0-9._-]/g, '_');
-        const nombreBlob = `videos/${usuarioId}/${timestamp}-${nombreArchivoSeguro}`;
+        const nombreBlobVideo = `videos/${usuarioId}/${timestamp}-${nombreArchivoSeguro}`;
 
-        const resultado = await azureBlob.uploadBlob('videos', nombreBlob, req.file.buffer);
+        const resultado = await azureBlob.uploadBlob('videos', nombreBlobVideo, req.file.buffer);
 
         if (resultado.success) {
-            const urlVideo = azureBlob.getBlobUrl('videos', nombreBlob);
+            const urlVideo = azureBlob.getBlobUrl('videos', nombreBlobVideo);
 
             if (urlVideo.length > 255) {
-                await azureBlob.deleteBlob('videos', nombreBlob);
+                await azureBlob.deleteBlob('videos', nombreBlobVideo);
                 return res.status(400).json({ ok: false, error: 'La URL del video supera el máximo permitido de 255 caracteres' });
             }
 
@@ -120,7 +120,7 @@ const cargarVideo = async (req, res, next) => {
                 ok: true,
                 mensaje: 'Video cargado correctamente',
                 url: urlVideo,
-                blobName: nombreBlob
+                blobName: nombreBlobVideo
             });
         }
 
@@ -132,7 +132,108 @@ const cargarVideo = async (req, res, next) => {
     }
 };
 
+const cargarFoto = async (req, res, next) => {
+    try {
+        if (req.session.isLoggedIn !== true || !req.session.usuarioId) {
+            return res.status(401).json({ ok: false, error: 'Debes iniciar sesión para subir fotos' });
+        }
+
+        const correoUsuario = (req.session.correo || '').trim().toLowerCase();
+        //const duracionSegundos = Number.parseInt(req.body.duracion_segundos, 10);
+
+        if (!req.file) {
+            return res.status(400).json({ ok: false, error: 'No se subió ningún archivo' });
+        }
+
+        if (!req.file.originalname || req.file.originalname.trim() === "" || req.file.originalname.length === 0) {
+            return res.status(400).json({ ok: false, error: 'El nombre de la foto es obligatorio' });
+        }
+
+        const nombreOriginalLimpio = req.file.originalname.trim();
+        const nombreSinExtension = nombreOriginalLimpio.replace(/\.[^/.]+$/, '').trim();
+        if (!nombreSinExtension) {
+            return res.status(400).json({ ok: false, error: 'El nombre de la foto no puede estar vacio' });
+        }
+
+        // // if (!Number.isFinite(duracionSegundos) || duracionSegundos < 0) {
+        //     return res.status(400).json({ ok: false, error: 'Duración de foto no válida' });
+        // }
+
+        const tiposPermitidos = ['image/jpg', 'image/png'];
+        if (!tiposPermitidos.includes(req.file.mimetype)) {
+            return res.status(400).json({
+                ok: false,
+                error: 'Solo se permiten fotos (jpg, png)'
+            });
+        }
+
+        const tamanioMaximo = 50 * 1024 * 1024;
+        if (req.file.size > tamanioMaximo) {
+            return res.status(400).json({
+                ok: false,
+                error: 'La foto no puede exceder 50 MB'
+            });
+        }
+
+        const fotoExistente = await db.query(
+            `SELECT * FROM FotosUsuario
+             WHERE correo_usuario = @p0 AND nombre_foto = @p1`,
+            [correoUsuario, req.file.originalname]
+        );
+
+        const filasFotoExistente = fotoExistente.recordset || fotoExistente;
+        if (filasFotoExistente.length > 0) {
+            return res.status(400).json({
+                ok: false,
+                error: 'Ya tienes una foto con ese nombre'
+            });
+        }
+
+        const usuarioId = req.session.usuarioId;
+        const timestamp = Date.now();
+        const nombreArchivoSeguro = nombreOriginalLimpio.replace(/[^a-zA-Z0-9._-]/g, '_');
+        const nombreBlobFoto = `fotos/${usuarioId}/${timestamp}-${nombreArchivoSeguro}`;
+
+        const resultado = await azureBlob.uploadBlob('fotos', nombreBlobFoto, req.file.buffer);
+
+        if (resultado.success) {
+            const urlFoto = azureBlob.getBlobUrl('fotos', nombreBlobFoto);
+
+            if (urlFoto.length > 255) {
+                await azureBlob.deleteBlob('fotos', nombreBlobFoto);
+                return res.status(400).json({ ok: false, error: 'La URL de la foto supera el máximo permitido de 255 caracteres' });
+            }
+
+            await db.query(
+                `INSERT INTO FotosUsuario (correo_usuario, url_foto, nombre_foto, peso_bytes)
+                 VALUES (@p0, @p1, @p2, @p3, @p4)`,
+                [
+                    correoUsuario,
+                    urlFoto,
+                    nombreOriginalLimpio,
+                    req.file.size,
+                    timestamp
+                ]
+            );
+
+            return res.json({
+                ok: true,
+                mensaje: 'Foto cargada correctamente',
+                url: urlFoto,
+                blobName: nombreBlobFoto
+            });
+        }
+
+        return res.status(500).json({ ok: false, error: 'Error al subir la foto' });
+
+    } catch (err) {
+        console.error('Error al cargar foto:', err);
+        return res.status(500).json({ ok: false, error: 'Error interno del servidor' });
+    }
+};
+
 module.exports = {
     mostrarSubirVideo,
-    cargarVideo
+    cargarVideo,
+    cargarFoto
 };

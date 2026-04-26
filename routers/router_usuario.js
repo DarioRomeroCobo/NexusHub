@@ -43,6 +43,7 @@ router.get("/logout", logout);
 router.get("/inicio", verificarAutenticacion, mostrarInicioUsuario);
 
 router.post("/api/cargar-video", verificarAutenticacion, upload.single('video'), cargarVideo);
+router.post("/api/cargar-foto", verificarAutenticacion, upload.single('foto'), cargarFoto);
 
 router.get("/vincular-youtube", verificarAutenticacion, mostrarVincularYoutube);
 router.get("/youtube/auth", verificarAutenticacion, iniciarVinculacionYoutube);
