@@ -18,7 +18,9 @@ const { getUsuarios } = require('../controllers/userController');
 
 const {
     mostrarSubirVideo,
-    cargarVideo
+    cargarVideo,
+    cargarFoto,
+    cargarArchivo
 } = require('../controllers/videoController');
 
 const {
