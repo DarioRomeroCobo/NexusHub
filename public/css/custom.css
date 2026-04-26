@@ -144,3 +144,45 @@ input:focus {
     object-fit: cover;
     background-color: #0d1b2a;
 }
+
+/* VISTA PUBLICACIÓN DE VIDEO */
+
+.publicacion-video-page {
+    background: radial-gradient(circle at 12% 12%, #eef5ff 0%, transparent 35%),
+        radial-gradient(circle at 90% 80%, #dbe8ff 0%, transparent 40%),
+        #f8fbff;
+}
+
+.publicacion-video-hero {
+    background: linear-gradient(130deg, #0d1b2a, #1e3a5f, #2f6fd7);
+}
+
+.publicacion-video-card {
+    border: none;
+}
+
+.video-preview-wrapper {
+    aspect-ratio: 16 / 9;
+    background-color: #0d1b2a;
+    overflow: hidden;
+}
+
+.video-preview-wrapper video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    background: #000;
+}
+
+.preview-hint {
+    color: #6c757d;
+    font-size: 0.95rem;
+}
+
+.publicacion-form .form-control {
+    border-radius: 0.75rem;
+}
+
+.publicacion-form button {
+    min-width: 160px;
+}

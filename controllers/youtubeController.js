@@ -2,6 +2,10 @@ const crypto = require('crypto');
 const axios = require('axios');
 const FormData = require('form-data');
 const db = require('../utils/middleware-bd');
+const AzureBlobStorage = require('../utils/azure-blob');
+
+const CONNECTION_STRING = 'DefaultEndpointsProtocol=https;AccountName=almacenamientonexushub;AccountKey=9JbBzi0ph16RzsPC7X3zRTJij0aCadWGY+H/a17Rcy3zGzqZvncqL9GUTv9jhpJ+UqBIaJF4n2XT+AStllDGeg==;EndpointSuffix=core.windows.net';
+const azureBlob = new AzureBlobStorage(CONNECTION_STRING);
 
 const YOUTUBE_SCOPES = [
     'https://www.googleapis.com/auth/youtube.readonly',
@@ -59,26 +63,32 @@ const getAccessTokenVigente = async (req, correoUsuario) => {
         return { ok: false, status: 500, error: 'Falta configuracion OAuth de YouTube en el servidor' };
     }
 
-    const tokenResponse = await axios.post(
-        'https://oauth2.googleapis.com/token',
-        new URLSearchParams({
-            client_id: clientId,
-            client_secret: clientSecret,
-            refresh_token: String(vinculacion.refresh_token),
-            grant_type: 'refresh_token'
-        }).toString(),
-        {
-            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-            timeout: 15000
-        }
-    );
+    let tokenResponse;
+    try {
+        tokenResponse = await axios.post(
+            'https://oauth2.googleapis.com/token',
+            new URLSearchParams({
+                client_id: clientId,
+                client_secret: clientSecret,
+                refresh_token: String(vinculacion.refresh_token),
+                grant_type: 'refresh_token'
+            }).toString(),
+            {
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                timeout: 15000
+            }
+        );
+    } catch (err) {
+        console.error('Error al renovar token de YouTube:', err.response?.data || err.message);
+        return { ok: false, status: 401, error: 'No se pudo renovar el token de YouTube. Vuelve a vincular tu cuenta.' };
+    }
 
     const nuevoAccessToken = tokenResponse.data?.access_token;
     const nuevoRefreshToken = tokenResponse.data?.refresh_token;
     const expiresIn = Number(tokenResponse.data?.expires_in || 3600);
 
     if (!nuevoAccessToken) {
-        return { ok: false, status: 401, error: 'No se pudo renovar el token de YouTube' };
+        return { ok: false, status: 401, error: 'No se pudo renovar el token de YouTube. Vuelve a vincular tu cuenta.' };
     }
 
     const nuevoExpiresAt = new Date(Date.now() + expiresIn * 1000);
@@ -297,46 +307,70 @@ const desvincularYoutube = async (req, res, next) => {
 const subirVideoYoutube = async (req, res, next) => {
     try {
         if (req.session.isLoggedIn !== true || !req.session.correo) {
-            return res.status(401).json({ ok: false, error: 'Debes iniciar sesion para continuar' });
+            req.session.mensajeError = 'Debes iniciar sesión para continuar';
+            return res.redirect('/usuario/inicio-sesion');
         }
 
         const correoUsuario = String(req.session.correo).trim().toLowerCase();
-        const videoId = Number.parseInt(req.body.videoId, 10);
-        const privacidad = String(req.body.privacyStatus || 'private').toLowerCase();
+        const videoUrl = String(req.body.videoUrl || '').trim();
+        const blobUrl = videoUrl.split('?')[0];
+        const privacyRaw = req.body.privacyStatus;
+        const privacidad = Array.isArray(privacyRaw)
+            ? String(privacyRaw[0] || 'private').toLowerCase()
+            : String(privacyRaw || 'private').toLowerCase();
 
-        if (!Number.isFinite(videoId) || videoId <= 0) {
-            return res.status(400).json({ ok: false, error: 'videoId es obligatorio y debe ser numerico' });
+        if (!videoUrl) {
+            req.session.mensajeError = 'videoUrl es obligatorio';
+            return res.redirect('/');
         }
 
         if (!['private', 'public', 'unlisted'].includes(privacidad)) {
-            return res.status(400).json({ ok: false, error: 'privacyStatus no valido' });
+            req.session.mensajeError = 'privacyStatus no válido';
+            return res.redirect('/');
+        }
+
+        const tituloRaw = String(req.body.titulo || '').trim();
+        const descripcionRaw = String(req.body.descripcion || '').trim();
+
+        if (!tituloRaw || !descripcionRaw) {
+            req.session.mensajeError = 'Debes completar el título y la descripción antes de publicar en YouTube';
+            return res.redirect(`/usuario/publicacion-video?videoUrl=${encodeURIComponent(videoUrl)}`);
         }
 
         const tokenData = await getAccessTokenVigente(req, correoUsuario);
         if (!tokenData.ok) {
-            return res.status(tokenData.status || 400).json({ ok: false, error: tokenData.error });
+            req.session.mensajeError = tokenData.error;
+            return res.redirect('/');
         }
 
         const videos = await db.query(
-            `SELECT id_video, nombre_video, url_video
+            `SELECT nombre_video, url_video
              FROM VideosUsuario
-             WHERE id_video = @p0 AND correo_usuario = @p1`,
-            [videoId, correoUsuario]
+             WHERE url_video = @p0 AND correo_usuario = @p1`,
+            [blobUrl, correoUsuario]
         );
 
         const video = Array.isArray(videos) && videos.length > 0 ? videos[0] : null;
         if (!video) {
-            return res.status(404).json({ ok: false, error: 'No se encontro el video solicitado' });
+            req.session.mensajeError = 'No se encontró el video solicitado';
+            return res.redirect('/');
         }
 
-        const descarga = await axios.get(video.url_video, {
+        // Generate SAS URL for download
+        const url = new URL(video.url_video);
+        const pathParts = url.pathname.split('/').filter(p => p);
+        const containerName = pathParts[0];
+        const blobName = pathParts.slice(1).join('/');
+        const sasUrl = await azureBlob.getBlobSasUrl(containerName, blobName);
+
+        const descarga = await axios.get(sasUrl, {
             responseType: 'arraybuffer',
             timeout: 120000,
             maxContentLength: 1024 * 1024 * 1024
         });
 
-        const titulo = String(req.body.title || video.nombre_video || 'Video NexusHub').slice(0, 100);
-        const descripcion = String(req.body.description || 'Subido desde NexusHub').slice(0, 5000);
+        const titulo = String(req.body.titulo || '').trim().slice(0, 100);
+        const descripcion = String(req.body.descripcion || '').trim().slice(0, 5000);
         const etiquetas = Array.isArray(req.body.tags)
             ? req.body.tags
             : String(req.body.tags || '')
@@ -358,51 +392,41 @@ const subirVideoYoutube = async (req, res, next) => {
             }
         };
 
-        const formData = new FormData();
-        formData.append('snippet', JSON.stringify(metadata.snippet), {
-            contentType: 'application/json'
-        });
-        formData.append('status', JSON.stringify(metadata.status), {
-            contentType: 'application/json'
-        });
-        formData.append('video', Buffer.from(descarga.data), {
-            filename: video.nombre_video || 'video.mp4',
-            contentType: 'video/mp4'
-        });
+        const form = new FormData();
+        form.append('metadata', JSON.stringify(metadata), { contentType: 'application/json' });
+        form.append('video', descarga.data, { filename: 'video.mp4', contentType: 'video/mp4' });
 
         const youtubeResponse = await axios.post(
             'https://www.googleapis.com/upload/youtube/v3/videos?part=snippet,status',
-            formData,
+            form,
             {
                 headers: {
                     Authorization: `Bearer ${tokenData.accessToken}`,
-                    ...formData.getHeaders()
+                    ...form.getHeaders()  // Esto establece automáticamente el Content-Type a multipart/form-data
                 },
                 maxBodyLength: Infinity,
                 timeout: 180000
             }
         );
 
-        return res.status(200).json({
-            ok: true,
-            mensaje: 'Video subido a YouTube correctamente',
-            youtubeVideoId: youtubeResponse.data?.id || null,
-            youtubeUrl: youtubeResponse.data?.id ? `https://www.youtube.com/watch?v=${youtubeResponse.data.id}` : null
-        });
+        req.session.mensajeExito = 'Video subido a YouTube correctamente';
+        return res.redirect('/');
     } catch (err) {
         const estado = err.response?.status;
-        const detalle = err.response?.data?.error?.message || err.message;
+        const detalle = err.response?.data?.error?.message || err.response?.data || err.message;
+
+        console.error('Error completo al subir video a YouTube:', err);
+        console.error('Estado:', estado);
+        console.error('Detalle:', detalle);
 
         if (estado === 401 || estado === 403) {
-            return res.status(estado).json({
-                ok: false,
-                error: 'No autorizado por YouTube. Vuelve a vincular tu cuenta.',
-                detalle
-            });
+            req.session.mensajeError = 'No autorizado por YouTube. Vuelve a vincular tu cuenta.';
+            return res.redirect('/');
         }
 
         console.error('Error al subir video a YouTube:', detalle);
-        return res.status(500).json({ ok: false, error: 'No se pudo subir el video a YouTube', detalle });
+        req.session.mensajeError = 'No se pudo subir el video a YouTube';
+        return res.redirect('/');
     }
 };
 

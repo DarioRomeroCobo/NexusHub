@@ -18,7 +18,10 @@ const { getUsuarios } = require('../controllers/userController');
 
 const {
     mostrarSubirVideo,
-    cargarVideo
+    cargarVideo,
+    mostrarGaleriaPublicar,
+    mostrarPublicacionVideo,
+    publicarVideo
 } = require('../controllers/videoController');
 
 const {
@@ -37,6 +40,12 @@ router.get("/registro", verificarNoAutenticado, mostrarRegistro);
 router.get("/ver-usuarios", getUsuarios);
 router.get("/inicio-sesion", verificarNoAutenticado, mostrarInicioSesion);
 router.get("/subir-video", verificarAutenticacion, mostrarSubirVideo);
+
+router.get("/publicar-video", verificarAutenticacion, mostrarGaleriaPublicar);
+
+router.get("/publicacion-video", verificarAutenticacion, mostrarPublicacionVideo);
+router.post("/api/publicar-video", verificarAutenticacion, upload.single('video'), publicarVideo);
+
 router.post("/api/", registrarUsuario);
 router.post("/api/login", validarSesion);
 router.get("/logout", logout);
