@@ -67,7 +67,7 @@ describe('Pruebas Unitarias - Subida de Video', () => {
         // Assert
         expect(res.json).toHaveBeenCalledWith({
             ok: true,
-            mensaje: 'Video cargado correctamente',
+            mensaje: 'El video se ha publicado correctamente',
             url: 'https://azure.com/video.mp4?sas=token',
             blobName: expect.stringContaining('videos/1/')
         });

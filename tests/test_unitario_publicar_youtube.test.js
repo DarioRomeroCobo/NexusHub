@@ -139,7 +139,7 @@ describe('NH11 - Pruebas Unitarias de Publicación en YouTube', () => {
                     })
                 })
             );
-            expect(res.redirect).toHaveBeenCalledWith('/');
+            expect(res.redirect).toHaveBeenCalledWith('/usuario/publicar-video');
             expect(req.session.mensajeExito).toBe('Video subido a YouTube correctamente');
         });
 
