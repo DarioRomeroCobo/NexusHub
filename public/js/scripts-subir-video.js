@@ -43,7 +43,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         //Si validación falla, mostrar error y cancelar
         if (!resultadoValidacion.ok) {
-            feedback.textContent = resultadoValidacion.error;
+            document.getElementById("feedback-message").textContent = resultadoValidacion.error;
             feedback.classList.remove("d-none");
             feedback.classList.add("alert-danger");
             inputVideo.value = "";
@@ -84,7 +84,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 throw new Error(resultado.error || "No se pudo subir el video");
             }
 
-            feedback.textContent = resultado.mensaje || "Video subido correctamente";
+            document.getElementById("feedback-message").textContent = resultado.mensaje || "Video subido correctamente";
             feedback.classList.remove("d-none");
             feedback.classList.add("alert-success");
 
@@ -93,7 +93,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 window.location.reload();
             }, 1200);
         } catch (error) {
-            feedback.textContent = error.message || "Error interno al subir el video";
+            document.getElementById("feedback-message").textContent = error.message || "Error interno al subir el video";
             feedback.classList.remove("d-none");
             feedback.classList.add("alert-danger");
         } finally {
@@ -102,6 +102,7 @@ document.addEventListener("DOMContentLoaded", () => {
             inputVideo.value = "";
         }
     });
+
 });
 
 //Función para validar el archivo de vídeo
