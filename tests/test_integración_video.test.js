@@ -104,7 +104,7 @@ describe('Integración NH-72: Flujo de Subida de Vídeos', () => {
         // Verificamos respuesta exitosa
         expect(response.status).toBe(200);
         expect(response.body.ok).toBe(true);
-        expect(response.body.mensaje).toBe('Video cargado correctamente');
+        expect(response.body.mensaje).toBe('El video se ha publicado correctamente');
 
         // VERIFICACIÓN EN BD (NH-50): Comprobamos que el registro existe
         const videoEnBD = await db.query(

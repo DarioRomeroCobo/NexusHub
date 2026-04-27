@@ -135,7 +135,7 @@ describe('Integración NH11: Publicar en YouTube', () => {
             });
 
         expect(response.status).toBe(302); // Redirect
-        expect(response.headers.location).toBe('/');
+        expect(response.headers.location).toBe('/usuario/publicar-video');
 
         // Verificar que se llamó a axios para descargar el video
         expect(axios.get).toHaveBeenCalledWith('https://almacenamientonexushub.blob.core.windows.net/videos/video_test.mp4?sas=token', expect.any(Object));
