@@ -6,7 +6,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const botonSubir = document.getElementById("btn-subir-nuevo-video");
     const inputVideo = document.getElementById("input-video");
     const formulario = document.getElementById("form-subir-video");
-    const feedback = document.getElementById("subida-feedback");
+    const feedback = document.getElementById("subida-feedback-video");
 
     if (!botonSubir || !inputVideo || !formulario || !feedback) return;
 

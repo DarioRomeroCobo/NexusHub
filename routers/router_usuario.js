@@ -17,11 +17,11 @@ const {
 const { getUsuarios } = require('../controllers/userController');
 
 const {
-    mostrarSubirVideo,
+    mostrarGestorArchivos,
     cargarVideo,
     cargarFoto,
     cargarArchivo
-} = require('../controllers/videoController');
+} = require('../controllers/archivoController');
 
 const {
     mostrarVincularYoutube,
@@ -38,7 +38,7 @@ const upload = multer({ storage: multer.memoryStorage() });
 router.get("/registro", verificarNoAutenticado, mostrarRegistro);
 router.get("/ver-usuarios", getUsuarios);
 router.get("/inicio-sesion", verificarNoAutenticado, mostrarInicioSesion);
-router.get("/subir-video", verificarAutenticacion, mostrarSubirVideo);
+router.get("/subir-video", verificarAutenticacion, mostrarGestorArchivos);
 router.post("/api/", registrarUsuario);
 router.post("/api/login", validarSesion);
 router.get("/logout", logout);

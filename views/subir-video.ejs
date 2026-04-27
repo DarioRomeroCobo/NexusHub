@@ -8,6 +8,7 @@
 
     <main class="flex-grow-1 subir-video-page py-4 py-md-5">
         <div class="container">
+            <!-- SECCIÓN DE VÍDEOS -->
             <section class="subir-video-hero rounded-4 p-4 p-md-5 mb-4 shadow-sm">
                 <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
                     <div>
@@ -22,35 +23,14 @@
                     </div>
                 </div>
 
-                <div id="subida-feedback" class="alert mt-3 mb-0 d-none text-white border-0 shadow-sm" role="alert"></div>
+                <div id="subida-feedback-video" class="alert mt-3 mb-0 d-none text-white border-0 shadow-sm" role="alert"></div>
 
                 <form id="form-subir-video" class="d-none" enctype="multipart/form-data">
                     <input id="input-video" type="file" name="video" accept="video/mp4,video/quicktime,.mp4,.mov">
                 </form>
             </section>
 
-            <!-- <section class="subir-video-hero rounded-4 p-4 p-md-5 mb-4 shadow-sm">
-                <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
-                    <div>
-                        <h1 class="h3 h2-md fw-bold mb-1 text-white">Tus videos</h1>
-                        <p class="mb-0 text-white-50">Aquí puedes gestionar todos los videos que has subido.</p>
-                    </div>
-
-                    <div class="text-end">
-                        <button id="btn-subir-nuevo-video" type="button" class="btn btn-gradient rounded-pill fw-semibold px-4 py-2">
-                            Subir nuevo video
-                        </button>
-                    </div>
-                </div>
-
-                <div id="subida-feedback" class="alert mt-3 mb-0 d-none" role="alert"></div>
-
-                <form id="form-subir-video" class="d-none" enctype="multipart/form-data">
-                    <input id="input-video" type="file" name="video" accept="video/mp4,video/quicktime,.mp4,.mov">
-                </form>
-            </section>  -->
-
-            <section class="card border-0 shadow-sm rounded-4 p-3 p-md-4 bg-white">
+            <section class="card border-0 shadow-sm rounded-4 p-3 p-md-4 bg-white mb-5">
                 <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
                     <h2 class="h5 mb-0 fw-bold">Listado de videos subidos</h2>
                     <span class="badge text-bg-light border">Total: <%= totalVideos %></span>
@@ -86,11 +66,69 @@
                     </div>
                 <% } %>
             </section>
+
+            <!-- SECCIÓN DE FOTOS -->
+            <section class="subir-foto-hero rounded-4 p-4 p-md-5 mb-4 shadow-sm" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
+                    <div>
+                        <h1 class="h3 h2-md fw-bold mb-1 text-white">Tus fotos</h1>
+                        <p class="mb-0 text-white" style="opacity: 0.85;">Aquí puedes gestionar todas las fotos que has subido.</p>
+                    </div>
+
+                    <div class="text-end">
+                        <button id="btn-subir-nueva-foto" type="button" class="btn btn-light rounded-pill fw-semibold px-4 py-2 text-dark">
+                        Subir nueva foto
+                        </button>
+                    </div>
+                </div>
+
+                <div id="subida-feedback-foto" class="alert mt-3 mb-0 d-none text-white border-0 shadow-sm" role="alert"></div>
+
+                <form id="form-subir-foto" class="d-none" enctype="multipart/form-data">
+                    <input id="input-foto" type="file" name="foto" accept="image/jpeg,image/png,.jpg,.png">
+                </form>
+            </section>
+
+            <section class="card border-0 shadow-sm rounded-4 p-3 p-md-4 bg-white">
+                <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+                    <h2 class="h5 mb-0 fw-bold">Listado de fotos subidas</h2>
+                    <span class="badge text-bg-light border">Total: <%= totalFotos %></span>
+                </div>
+
+                <% if (!fotos || fotos.length === 0) { %>
+                    <div class="text-center py-5 text-muted">
+                        <p class="mb-2 fw-semibold">Todavía no has subido fotos.</p>
+                        <p class="mb-0">Pulsa en "Subir nueva foto" para cargar la primera.</p>
+                    </div>
+                <% } else { %>
+                    <div class="table-responsive">
+                        <table class="table align-middle mb-0">
+                            <thead>
+                                <tr>
+                                    <th scope="col">Nombre de la foto</th>
+                                    <th scope="col">Tamaño</th>
+                                    <th scope="col">Hora de subida</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <% fotos.forEach(function(foto) { %>
+                                    <tr>
+                                        <td class="fw-semibold"><%= foto.nombre %></td>
+                                        <td><%= foto.pesoMB %> MB</td>
+                                        <td><%= foto.fecha ? new Date(foto.fecha).toLocaleString('es-ES') : 'Fecha no disponible' %></td>
+                                    </tr>
+                                <% }); %>
+                            </tbody>
+                        </table>
+                    </div>
+                <% } %>
+            </section>
         </div>
     </main>
 
     <%- include("fragments/footer") %>
 
     <script src="/js/scripts-subir-video.js"></script>
+    <script src="/js/scripts-subir-foto.js"></script>
 </body>
 </html>
