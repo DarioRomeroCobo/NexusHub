@@ -6,6 +6,7 @@ const AzureBlobStorage = require('../utils/azure-blob');
 
 const CONNECTION_STRING = 'DefaultEndpointsProtocol=https;AccountName=almacenamientonexushub;AccountKey=9JbBzi0ph16RzsPC7X3zRTJij0aCadWGY+H/a17Rcy3zGzqZvncqL9GUTv9jhpJ+UqBIaJF4n2XT+AStllDGeg==;EndpointSuffix=core.windows.net';
 const azureBlob = new AzureBlobStorage(CONNECTION_STRING);
+const MAX_DURACION_SEGUNDOS = 12 * 60 * 60;
 
 const YOUTUBE_SCOPES = [
     'https://www.googleapis.com/auth/youtube.readonly',
@@ -343,17 +344,24 @@ const subirVideoYoutube = async (req, res, next) => {
             return res.redirect('/');
         }
 
-        const videos = await db.query(
-            `SELECT nombre_video, url_video
+        const videosRaw = await db.query(
+            `SELECT nombre_video, url_video, duracion_segundos
              FROM VideosUsuario
              WHERE url_video = @p0 AND correo_usuario = @p1`,
             [blobUrl, correoUsuario]
         );
+        const videos = Array.isArray(videosRaw) ? videosRaw : (videosRaw.recordset || []);
 
         const video = Array.isArray(videos) && videos.length > 0 ? videos[0] : null;
         if (!video) {
             req.session.mensajeError = 'No se encontró el video solicitado';
             return res.redirect('/');
+        }
+
+        const duracionSegundos = Number(video.duracion_segundos || 0);
+        if (duracionSegundos >= MAX_DURACION_SEGUNDOS) {
+            req.session.mensajeError = 'Error: video demasiado largo, debe durar menos de 12 horas';
+            return res.redirect(`/usuario/publicacion-video?videoUrl=${encodeURIComponent(videoUrl)}`);
         }
 
         // Generate SAS URL for download
@@ -410,7 +418,7 @@ const subirVideoYoutube = async (req, res, next) => {
         );
 
         req.session.mensajeExito = 'Video subido a YouTube correctamente';
-        return res.redirect('/');
+        return res.redirect('/usuario/publicar-video');
     } catch (err) {
         const estado = err.response?.status;
         const detalle = err.response?.data?.error?.message || err.response?.data || err.message;
@@ -426,7 +434,7 @@ const subirVideoYoutube = async (req, res, next) => {
 
         console.error('Error al subir video a YouTube:', detalle);
         req.session.mensajeError = 'No se pudo subir el video a YouTube';
-        return res.redirect('/');
+        return res.redirect('/usuario/publicar-video');
     }
 };
 

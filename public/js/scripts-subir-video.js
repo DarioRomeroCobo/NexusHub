@@ -31,7 +31,7 @@ document.addEventListener("DOMContentLoaded", () => {
         );
 
         if (!resultadoValidacion.ok) {
-            feedback.textContent = resultadoValidacion.error;
+            document.getElementById("feedback-message").textContent = resultadoValidacion.error;
             feedback.classList.remove("d-none");
             feedback.classList.add("alert-danger", "text-white"); // Añadido text-white
             inputVideo.value = "";
@@ -66,7 +66,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 throw new Error(resultado.error || "No se pudo subir el video");
             }
 
-            feedback.textContent = resultado.mensaje || "Video subido correctamente";
+            document.getElementById("feedback-message").textContent = resultado.mensaje || "Video subido correctamente";
             feedback.classList.remove("d-none");
             feedback.classList.add("alert-success", "text-white"); // Añadido text-white
 
@@ -75,7 +75,7 @@ document.addEventListener("DOMContentLoaded", () => {
             }, 1200);
 
         } catch (error) {
-            feedback.textContent = error.message || "Error interno al subir el video";
+            document.getElementById("feedback-message").textContent = error.message || "Error interno al subir el video";
             feedback.classList.remove("d-none");
             feedback.classList.add("alert-danger", "text-white"); // Añadido text-white
         } finally {
@@ -85,6 +85,7 @@ document.addEventListener("DOMContentLoaded", () => {
             inputVideo.value = "";
         }
     });
+
 });
 
 // ... (Las funciones validarArchivoVideo y obtenerDuracionSegundos se quedan igual)

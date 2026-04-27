@@ -43,7 +43,10 @@
                     </div>
                 </div>
 
-                <div id="subida-feedback" class="alert mt-3 mb-0 d-none" role="alert"></div>
+                <div id="subida-feedback" class="alert alert-dismissible mt-3 mb-0 d-none" role="alert">
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    <span id="feedback-message"></span>
+                </div>
 
                 <form id="form-subir-video" class="d-none" enctype="multipart/form-data">
                     <input id="input-video" type="file" name="video" accept="video/mp4,video/quicktime,.mp4,.mov">

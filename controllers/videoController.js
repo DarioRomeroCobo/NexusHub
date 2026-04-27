@@ -44,6 +44,8 @@ const mostrarPublicacionVideo = async (req, res, next) => {
     const videoUrl = req.query.videoUrl; 
     if (!videoUrl) return res.redirect('/usuario/publicar-video');
 
+    const blobUrl = videoUrl.split('?')[0];
+
     // Parse the blob URL to get container and blob name
     const url = new URL(videoUrl);
     const pathParts = url.pathname.split('/').filter(p => p);
@@ -52,7 +54,19 @@ const mostrarPublicacionVideo = async (req, res, next) => {
 
     try {
         const sasUrl = await azureBlob.getBlobSasUrl(containerName, blobName);
-        res.render('publicacion-video', { videoUrl: sasUrl }); 
+
+        const videosRaw = await db.query(
+            `SELECT duracion_segundos
+             FROM VideosUsuario
+             WHERE url_video = @p0`,
+            [blobUrl]
+        );
+        const videos = Array.isArray(videosRaw) ? videosRaw : (videosRaw.recordset || []);
+
+        const video = Array.isArray(videos) && videos.length > 0 ? videos[0] : null;
+        const duracionSegundos = video ? Number(video.duracion_segundos || 0) : 0;
+
+        res.render('publicacion-video', { videoUrl: sasUrl, duracionSegundos }); 
     } catch (err) {
         next(err);
     }
@@ -155,7 +169,7 @@ const cargarVideo = async (req, res, next) => {
 
             return res.json({
                 ok: true,
-                mensaje: 'Video cargado correctamente',
+                mensaje: 'El video se ha publicado correctamente',
                 url: urlVideo,
                 blobName: nombreBlob
             });

@@ -14,9 +14,9 @@
         </div>
     <% } %>
     <% if (locals.mensajeError) { %>
-        <div id="mensajeError" class="alert alert-danger alert-dismissible fade show" role="alert">
+        <div id="mensajeError" class="alert alert-danger d-none alert-dismissible fade show" role="alert">
             <i class="fa-solid fa-exclamation-triangle me-2"></i>
-            <%= mensajeError %>
+            <span class="mensaje-texto"><%= mensajeError %></span>
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
     <% } else { %>
@@ -26,6 +26,10 @@
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
     <% } %>
+
+    <div id="popup-publicar" class="alert alert-danger position-fixed top-50 start-50 translate-middle shadow-lg border-0 d-none" role="alert" style="z-index: 1050; min-width: 320px; max-width: 90%;">
+        <span id="popup-publicar-text"></span>
+    </div>
 
     <main class="flex-grow-1 publicacion-video-page py-5">
         <div class="container">
@@ -71,6 +75,7 @@
 
                             <form id="form-publicacion-video" class="publicacion-form" method="post" action="/usuario/api/youtube/subir-video">
                                 
+                                <input id="duracion-video" type="hidden" value="<%= duracionSegundos || 0 %>">
                                 <input type="hidden" name="videoUrl" value="<%= videoUrl %>">
 
                                 <div class="mb-4">
@@ -158,9 +163,42 @@
         const descripcionInput = document.getElementById('descripcion-video');
         const mensajeErrorBox = document.getElementById('mensajeError');
         const mensajeTexto = mensajeErrorBox?.querySelector('.mensaje-texto');
+        const duracionVideoInput = document.getElementById('duracion-video');
+        const duracionVideo = Number(duracionVideoInput?.value || 0);
+        const popupPublicar = document.getElementById('popup-publicar');
+        const popupPublicarText = document.getElementById('popup-publicar-text');
+        const serverErrorMessage = <%- JSON.stringify(mensajeError || null) %>;
+
+        function mostrarPopupPublicar(mensaje) {
+            if (!popupPublicar || !popupPublicarText) {
+                alert(mensaje);
+                return;
+            }
+            popupPublicarText.textContent = mensaje;
+            popupPublicar.classList.remove('d-none');
+            if (popupPublicar._timeoutId) {
+                clearTimeout(popupPublicar._timeoutId);
+            }
+            popupPublicar._timeoutId = setTimeout(() => {
+                popupPublicar.classList.add('d-none');
+            }, 6000);
+        }
+
+        if (serverErrorMessage) {
+            if (mensajeErrorBox) {
+                mensajeErrorBox.classList.add('d-none');
+            }
+            mostrarPopupPublicar(serverErrorMessage);
+        }
 
         if (formPublicacion && tituloInput && descripcionInput && mensajeErrorBox) {
             formPublicacion.addEventListener('submit', (event) => {
+                if (duracionVideo >= 12 * 60 * 60) {
+                    event.preventDefault();
+                    mostrarPopupPublicar('Error: video demasiado largo, debe durar menos de 12 horas');
+                    return;
+                }
+
                 const titulo = tituloInput.value.trim();
                 const descripcion = descripcionInput.value.trim();
 
