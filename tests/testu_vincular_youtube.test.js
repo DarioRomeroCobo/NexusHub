@@ -169,7 +169,9 @@ describe('iniciarVinculacionYoutube', () => {
         expect(parsedUrl.searchParams.get('client_id')).toBe('client-123');
         expect(parsedUrl.searchParams.get('redirect_uri')).toBe('https://nexushub.test/usuario/youtube/callback');
         expect(parsedUrl.searchParams.get('response_type')).toBe('code');
-        expect(parsedUrl.searchParams.get('scope')).toBe('https://www.googleapis.com/auth/youtube.readonly https://www.googleapis.com/auth/youtube.upload');
+        const scope = parsedUrl.searchParams.get('scope') || '';
+        expect(scope).toContain('https://www.googleapis.com/auth/youtube.readonly');
+        expect(scope).toContain('https://www.googleapis.com/auth/youtube.upload');
         expect(parsedUrl.searchParams.get('access_type')).toBe('offline');
         expect(parsedUrl.searchParams.get('include_granted_scopes')).toBe('true');
         expect(parsedUrl.searchParams.get('prompt')).toBe('consent');

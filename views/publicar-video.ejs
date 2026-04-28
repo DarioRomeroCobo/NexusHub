@@ -47,12 +47,16 @@
                                     <!-- sin fondo negro-->
                                     <div class="position-relative bg-dark" style="height: 160px;">
 
-                                        <img 
-                                            src="<%= v.thumbnailUrl %>"
+                                        <video 
+                                            muted
+                                            autoplay
+                                            loop
+                                            playsinline
                                             class="w-100 h-100"
                                             style="object-fit: cover;"
-                                            loading="lazy"
-                                        />
+                                            preload="metadata"
+                                            src="<%= v.url %>"
+                                        ></video>
 
                                         <!-- duración -->
                                         <span class="position-absolute bottom-0 end-0 m-2 badge bg-dark">

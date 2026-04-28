@@ -81,6 +81,34 @@ input:focus {
     background: linear-gradient(135deg, #0d1b2a, #1b2a45);
 }
 
+/* VISTAS AUTH (LOGIN + REGISTRO) */
+
+.auth-container {
+    max-width: 460px;
+}
+
+.auth-card {
+    background-color: rgba(255, 255, 255, 0.95);
+}
+
+.auth-title {
+    color: #0d1b2a;
+    font-weight: 700;
+    letter-spacing: 0.2px;
+}
+
+.auth-label {
+    font-weight: 600;
+}
+
+.auth-input {
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.auth-footer-text {
+    color: #6c757d;
+}
+
 .registro-container {
     max-width: 460px;
 }
@@ -149,12 +177,6 @@ input:focus {
     background: linear-gradient(130deg, #0d1b2a, #1e3a5f, #2f6fd7);
 }
 
-.video-preview {
-    aspect-ratio: 16 / 9;
-    object-fit: cover;
-    background-color: #0d1b2a;
-}
-
 /* VISTA PUBLICACIÓN DE VIDEO */
 
 .publicacion-video-page {
@@ -182,11 +204,6 @@ input:focus {
     height: 100%;
     object-fit: cover;
     background: #000;
-}
-
-.preview-hint {
-    color: #6c757d;
-    font-size: 0.95rem;
 }
 
 .publicacion-form .form-control {
