@@ -37,6 +37,10 @@ const {
     subirVideoYoutube
 } = require('../controllers/youtubeController');
 
+const {
+    mostrarEstadisticasPublicaciones
+} = require('../controllers/estadisticasController');
+
 const { verificarAutenticacion, verificarNoAutenticado } = require("../utils/middleware-auth");
 const upload = multer({ storage: multer.memoryStorage() });
 
@@ -69,5 +73,6 @@ router.get("/estadisticas", verificarAutenticacion, (req, res) => {
     res.render("estadisticas-general");
 });
 router.get("/estadisticas-redsocial", verificarAutenticacion, mostrarEstadisticas);
+router.get("/estadisticas-publicaciones", verificarAutenticacion, mostrarEstadisticasPublicaciones);
 
 module.exports = router;
