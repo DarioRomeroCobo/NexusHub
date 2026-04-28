@@ -1,0 +1,145 @@
+//TO-DO: Hacer test de tamaño
+const path = require('path');
+const express = require('express');
+const session = require('express-session');
+const request = require('supertest');
+const bcrypt = require('bcrypt');
+const db = require('../utils/middleware-bd');
+const pool = require('../connection');
+const routerUsuarios = require('../routers/router_usuario');
+
+// 1. MOCK DE AZURE: Evitamos subir archivos reales a la nube durante el test
+jest.mock('../utils/azure-blob', () => {
+    return jest.fn().mockImplementation(() => {
+        return {
+            uploadBlob: jest.fn().mockResolvedValue({ success: true }),
+            getBlobUrl: jest.fn().mockReturnValue('https://mockazure.com/foto_test.png'),
+            deleteBlob: jest.fn().mockResolvedValue({ success: true })
+        };
+    });
+});
+
+describe('Integración NH-XX: Flujo de Subida de Fotos', () => {
+    let app;
+    const correosCreados = new Set();
+
+    jest.setTimeout(30000);
+
+    const generarCorreoUnico = () => `test_foto_${Date.now()}@nexushub.test`;
+
+    // Función auxiliar para crear usuario y loguearlo en el test
+    const prepararSesion = async (agent, correo) => {
+        const pass = 'Valida@123';
+        const hash = await bcrypt.hash(pass, 10);
+        // Insertamos usuario directamente en la BD de pruebas
+        await db.query('INSERT INTO usuario (correo, contraseña) VALUES (@p0, @p1)', [correo, hash]);
+        correosCreados.add(correo);
+        
+        // Login para obtener la cookie de sesión
+        await agent.post('/usuario/api/login').send({ correo, password: pass });
+    };
+
+    beforeAll(() => {
+        app = express();
+        app.set('view engine', 'ejs');
+        app.set('views', path.join(__dirname, '..', 'views'));
+        app.use(express.json());
+        app.use(express.urlencoded({ extended: true }));
+        
+        // Configuración de sesión idéntica a tu app.js
+        app.use(session({
+            secret: "inicio_sesion_es_seguro",
+            resave: false,
+            saveUninitialized: false
+        }));
+
+        // Middleware de locals (extraído de tu app.js)
+        app.use((req, res, next) => {
+            res.locals.user = req.session.usuarioId || null;
+            res.locals.isLoggedIn = req.session.isLoggedIn || false;
+            next();
+        });
+
+        app.use('/usuario', routerUsuarios);
+    });
+
+    afterEach(async () => {
+        // Limpiamos la BD después de cada test para no dejar basura
+        for (const correo of correosCreados) {
+            await db.query('DELETE FROM VideosUsuario WHERE correo_usuario = @p0', [correo]);
+            await db.query('DELETE FROM usuario WHERE correo = @p0', [correo]);
+        }
+        correosCreados.clear();
+    });
+
+    afterAll(async () => {
+        try { await pool.close(); } catch (e) {}
+    });
+
+    // --- BLOQUE DE TESTS ---
+
+    test('NH-XX/XX: El servidor debe rechazar subidas sin sesión activa (401 JSON)', async () => {
+        const response = await request(app)
+            .post('/usuario/api/cargar-foto')
+            .attach('foto', Buffer.from('foto_data'), 'test.png');
+
+        expect(response.status).toBe(401);
+        expect(response.body.ok).toBe(false);
+        expect(response.body.error).toMatch(/iniciar sesion|sesion/i);
+    });
+
+    test('NH-50/55: Subida exitosa, integración con Azure y registro en BD', async () => {
+        const agent = request.agent(app);
+        const correo = generarCorreoUnico();
+        await prepararSesion(agent, correo);
+
+        // Simulamos un archivo de foto (Buffer)
+        const fotoBuffer = Buffer.from('fake_png_content');
+
+        const response = await agent
+            .post('/usuario/api/cargar-foto')
+            .field('duracion_segundos', 120) // NH-XX: Dato necesario
+            .attach('foto', fotoBuffer, 'mi_foto.png');
+
+        // Verificamos respuesta exitosa
+        expect(response.status).toBe(200);
+        expect(response.body.ok).toBe(true);
+        expect(response.body.mensaje).toBe('Foto cargada correctamente');
+
+        // VERIFICACIÓN EN BD (NH-XX): Comprobamos que el registro existe
+        const fotoEnBD = await db.query(
+            'SELECT * FROM FotosUsuario WHERE correo_usuario = @p0', 
+            [correo]
+        );
+        expect(fotoEnBD.length).toBe(1);
+        expect(fotoEnBD[0].nombre_foto).toBe('mi_foto.png');
+    });
+
+    test('NH-XX: Debe rechazar formatos no permitidos (ej. .txt)', async () => {
+        const agent = request.agent(app);
+        const correo = generarCorreoUnico();
+        await prepararSesion(agent, correo);
+
+        const response = await agent
+            .post('/usuario/api/cargar-foto')
+            //.field('duracion_segundos', 10)
+            .attach('foto', Buffer.from('texto'), 'notas.txt');
+
+        expect(response.status).toBe(400);
+        expect(response.body.error).toBe("Solo se permiten fotos (jpg, jpeg, png)");
+    });
+
+    // test('NH-XX: Debe rechazar peticiones con duración de video no válida', async () => {
+    //     const agent = request.agent(app);
+    //     const correo = generarCorreoUnico();
+    //     await prepararSesion(agent, correo);
+
+    //     const response = await agent
+    //         .post('/usuario/api/cargar-video')
+    //         .field('duracion_segundos', 'texto_invalido')
+    //         .attach('video', Buffer.from('video_data'), 'video.mp4');
+
+    //     expect(response.status).toBe(400);
+    //     expect(response.body.error).toBe("Duración de video no válida");
+    // });
+});
