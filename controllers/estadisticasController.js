@@ -219,22 +219,29 @@ const mostrarEstadisticasPublicaciones = async (req, res, next) => {
             timeout: 15000
         });
 
-        const publicaciones = (statsResponse.data?.items || []).map((video) => ({
-            id: video.id,
-            titulo: video.snippet?.title || 'Sin titulo',
-            miniatura: video.snippet?.thumbnails?.medium?.url
-                || video.snippet?.thumbnails?.default?.url
-                || '',
-            fechaPublicacion: video.snippet?.publishedAt || null,
-            vistas: Number(video.statistics?.viewCount || 0),
-            meGusta: Number(video.statistics?.likeCount || 0),
-            noMeGusta: Number(video.statistics?.dislikeCount || 0),
-            comentarios: Number(video.statistics?.commentCount || 0),
-            monetizable: video.status?.license === 'youtube',
-            url: `https://www.youtube.com/watch?v=${video.id}`,
-            canalTitulo: video.snippet?.channelTitle || null,
-            serieTemporal: []
-        }));
+        const publicaciones = (statsResponse.data?.items || []).map((video) => {
+            const fechaPublicacion = video.snippet?.publishedAt 
+                ? new Date(video.snippet.publishedAt) 
+                : null;
+            fechaPublicacion?.setHours(0, 0, 0, 0);
+            
+            return {
+                id: video.id,
+                titulo: video.snippet?.title || 'Sin titulo',
+                miniatura: video.snippet?.thumbnails?.medium?.url
+                    || video.snippet?.thumbnails?.default?.url
+                    || '',
+                fechaPublicacion,
+                vistas: Number(video.statistics?.viewCount || 0),
+                meGusta: Number(video.statistics?.likeCount || 0),
+                noMeGusta: Number(video.statistics?.dislikeCount || 0),
+                comentarios: Number(video.statistics?.commentCount || 0),
+                monetizable: video.status?.license === 'youtube',
+                url: `https://www.youtube.com/watch?v=${video.id}`,
+                canalTitulo: video.snippet?.channelTitle || null,
+                serieTemporal: []
+            };
+        });
 
         const canal = publicaciones.find((p) => p.canalTitulo)?.canalTitulo || null;
 
@@ -290,6 +297,24 @@ const mostrarEstadisticasPublicaciones = async (req, res, next) => {
                         let comentariosAcumulados = baseComentarios;
 
                         return fechasRango.map((fechaIso) => {
+                            // Convertir fechaIso a Date para comparar
+                            const fechaActual = new Date(fechaIso + 'T00:00:00Z');
+                            
+                            // Si la fecha es anterior a la publicación, mostrar 0
+                            if (publicacion.fechaPublicacion && fechaActual < publicacion.fechaPublicacion) {
+                                return {
+                                    fecha: fechaIso,
+                                    vistas: 0,
+                                    meGusta: 0,
+                                    noMeGusta: 0,
+                                    comentarios: 0,
+                                    vistasTotal: 0,
+                                    meGustaTotal: 0,
+                                    noMeGustaTotal: 0,
+                                    comentariosTotal: 0
+                                };
+                            }
+                            
                             const fila = filasPorFecha.get(fechaIso) || [fechaIso, 0, 0, 0, 0];
                             const vistasDia = Number(fila[1] || 0);
                             const meGustaDia = Number(fila[2] || 0);
