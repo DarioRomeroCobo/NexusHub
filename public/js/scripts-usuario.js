@@ -70,9 +70,15 @@ async function manejadorRegistro(e) {
 
         const json = await res.json();
 
-
         if (json.ok) {
-            window.location.href = "/inicio-usuario";
+            registroFeedback.querySelector("p").textContent = json.mensaje;
+            registroFeedback.classList.remove("d-none");
+            registroFeedback.classList.add("alert-success");
+            
+            // Esperar 2 segundos para que la cookie de sesión se establezca
+            setTimeout(() => {
+                window.location.href = "/usuario/inicio";
+            }, 2000);
         } else {
             registroFeedback.querySelector("p").textContent = json.error;
             registroFeedback.classList.remove("d-none");

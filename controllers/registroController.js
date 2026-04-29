@@ -52,20 +52,25 @@ const registrarUsuario = async (req, res, next) => {
             ? nuevoUsuario.recordset[0]
             : nuevoUsuario[0];
 
-        req.session.usuarioId = usuario.id_usuario;
+        req.session.usuarioId = usuario.id_usuario || usuario.id || null;
         req.session.correo = usuario.correo;
         req.session.isLoggedIn = true;
 
-        req.session.save(err => {
-            if (err) {
-                console.error(err);
-                return res.status(500).json({ ok: false, error: 'Error al guardar sesión' });
-            }
-
-            res.json({
-                ok: true,
-                mensaje: 'Usuario registrado correctamente. Redirigiendo a la pagina de inicio de sesión ...'
+        // Guardar sesión con async/await
+        await new Promise((resolve, reject) => {
+            req.session.save(err => {
+                if (err) {
+                    console.error('Error saving session:', err);
+                    reject(err);
+                } else {
+                    resolve();
+                }
             });
+        });
+
+        res.json({
+            ok: true,
+            mensaje: 'Usuario registrado correctamente. Redirigiendo...'
         });
     } catch (err) {
         console.error('Error al registrar el usuario:', err);

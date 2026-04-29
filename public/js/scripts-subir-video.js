@@ -68,7 +68,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
             document.getElementById("feedback-message").textContent = resultado.mensaje || "Video subido correctamente";
             feedback.classList.remove("d-none");
-            feedback.classList.add("alert-success", "text-white"); // Añadido text-white
+            feedback.classList.add("alert-success", "text-success"); // Añadido text-white
 
             setTimeout(() => {
                 window.location.reload();
@@ -77,11 +77,11 @@ document.addEventListener("DOMContentLoaded", () => {
         } catch (error) {
             document.getElementById("feedback-message").textContent = error.message || "Error interno al subir el video";
             feedback.classList.remove("d-none");
-            feedback.classList.add("alert-danger", "text-white"); // Añadido text-white
+            feedback.classList.add("alert-danger", "text-alert"); // Añadido text-white
         } finally {
             botonSubir.disabled = false;
             botonSubir.innerHTML = "Subir nuevo video"; // Restauramos texto
-            botonSubir.classList.add("text-white");
+            botonSubir.classList.add("text-success");
             inputVideo.value = "";
         }
     });

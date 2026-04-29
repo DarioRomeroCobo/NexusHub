@@ -24,10 +24,12 @@ app.use(express.urlencoded({ extended: true }));
 
 app.use(session({
     secret: "inicio_sesion_es_seguro",
-    resave: false,
-    saveUninitialized: false,
+    resave: true,
+    saveUninitialized: true,
     cookie: {
         secure: false,
+        httpOnly: true,
+        sameSite: 'lax',
         maxAge: 3600000
     }
 }));
@@ -64,14 +66,6 @@ app.use(async (req, res, next) => {
     }
     next();
 });
-
-
-const MySqlStore = mysqlSession(session);
-
-const sessionStore = new MySqlStore({
-    expiration: 1000 * 60 * 60,
-    checkExpirationInterval: 1000 * 60 * 10
-}, pool);
 
 const router_usuarios = require("./routers/router_usuario.js");
 const { verificarNoAutenticado } = require("./utils/middleware-auth");
