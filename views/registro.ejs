@@ -9,12 +9,12 @@
             <%- include("fragments/navbar") %>
 
                 <main class="flex-grow-1 d-flex align-items-center justify-content-center py-5 registro-main-bg">
-                    <div class="container registro-container">
+                    <div class="container auth-container registro-container">
 
-                        <div class="card shadow-lg border-0 rounded-4 registro-card">
+                        <div class="card shadow-lg border-0 rounded-4 auth-card registro-card">
                             <div class="card-body p-4 p-md-5">
                                 <section id="registro">
-                                    <h1 class="h4 text-center mb-4 fw-bold registro-title">Crear cuenta</h1>
+                                    <h1 class="h4 text-center mb-4 auth-title registro-title">Crear cuenta</h1>
 
                                     <form id="formulario-registro" class="needs-validation" novalidate>
 
@@ -24,10 +24,10 @@
                                         </div>
 
                                         <div class="mb-3">
-                                            <label for="correo" class="form-label fw-semibold">Correo
+                                            <label for="correo" class="form-label auth-label fw-semibold">Correo
                                                 electrónico</label>
                                             <input type="email"
-                                                class="form-control form-control-lg border-primary registro-input-shadow"
+                                                class="form-control form-control-lg border-primary auth-input registro-input-shadow"
                                                 id="correo" name="correo" placeholder="ejemplo@correo.com"
                                                 autocomplete="email" aria-describedby="ayuda-correo"
                                                 pattern="^([\w\d.]+@+[\w]+.+[\w])$" required>
@@ -37,9 +37,9 @@
                                         </div>
 
                                         <div class="mb-4">
-                                            <label for="password" class="form-label fw-semibold">Contraseña</label>
+                                            <label for="password" class="form-label auth-label fw-semibold">Contraseña</label>
                                             <input type="password"
-                                                class="form-control form-control-lg border-primary registro-input-shadow"
+                                                class="form-control form-control-lg border-primary auth-input registro-input-shadow"
                                                 id="password" name="password" placeholder="******" minlength="8"
                                                 autocomplete="new-password" aria-describedby="ayuda-contrasena"
                                                 pattern="^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&._-])[A-Za-z\d@$!%*?&._-]{8,}$"
@@ -51,10 +51,10 @@
                                         </div>
 
                                         <div class="mb-4">
-                                            <label for="confirmPassword" class="form-label fw-semibold">Confirmar
+                                            <label for="confirmPassword" class="form-label auth-label fw-semibold">Confirmar
                                                 contraseña</label>
                                             <input type="password"
-                                                class="form-control form-control-lg border-primary registro-input-shadow"
+                                                class="form-control form-control-lg border-primary auth-input registro-input-shadow"
                                                 id="confirmPassword" name="confirm" placeholder="******"
                                                 aria-describedby="ayuda-confirmar" required>
                                             <div class="invalid-feedback">

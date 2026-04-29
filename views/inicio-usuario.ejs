@@ -7,6 +7,23 @@
     <body class="d-flex flex-column min-vh-100 bg-light">
         <%- include("fragments/header") %>
             <%- include("fragments/navbar") %>
+
+            <!-- Mensajes de éxito y error -->
+            <% if (locals.mensajeExito) { %>
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    <i class="fa-solid fa-check-circle me-2"></i>
+                    <%= mensajeExito %>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            <% } %>
+            <% if (locals.mensajeError) { %>
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <i class="fa-solid fa-exclamation-triangle me-2"></i>
+                    <%= mensajeError %>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            <% } %>
+
                 <main class="flex-grow-1">
 
                     <section class="py-5 border-bottom inicio-hero">
@@ -34,6 +51,7 @@
                                         sencilla.
                                     </p>
 
+                                    <!--
                                     <div class="d-flex flex-wrap gap-2">
                                         <a href="/dashboard" class="btn btn-gradient btn-lg rounded-pill px-4 fw-bold">
                                             Ir al panel
@@ -43,7 +61,7 @@
                                             class="btn btn-outline-light btn-lg rounded-pill px-4 fw-bold">
                                             Ver perfil
                                         </a>
-                                    </div>
+                                    </div> -->
 
                                 </div>
 
@@ -88,24 +106,24 @@
 
                                 <div class="col-md-4">
                                     <article class="h-100 p-4 border rounded-4 shadow-sm bg-white hover-card">
-                                        <h2 class="h4 mb-3 text-primary">Ver analíticas</h2>
+                                        <h2 class="h4 mb-3 text-primary">Ver estadísticas</h2>
                                         <p class="text-muted">
-                                            Consulta métricas unificadas de todas tus plataformas.
+                                            Consulta las estadísticas de todas tus plataformas vinculadas.
                                         </p>
-                                        <a href="/analiticas" class="btn btn-sm btn-primary rounded-pill">
-                                            Ver datos
+                                        <a href="/usuario/estadisticas" class="btn btn-sm btn-primary rounded-pill">
+                                            Ver estadísticas
                                         </a>
                                     </article>
                                 </div>
 
                                 <div class="col-md-4">
                                     <article class="h-100 p-4 border rounded-4 shadow-sm bg-white hover-card">
-                                        <h2 class="h4 mb-3 text-primary">Gestionar cuentas</h2>
+                                        <h2 class="h4 mb-3 text-primary">Revisar tus últimas 5 publicaciones</h2>
                                         <p class="text-muted">
-                                            Conecta y administra tus redes sociales en un solo lugar.
+                                            Accede a un resumen de tu actividad reciente en redes sociales.
                                         </p>
-                                        <a href="/cuentas" class="btn btn-sm btn-primary rounded-pill">
-                                            Gestionar
+                                        <a href="/usuario/estadisticas-publicaciones" class="btn btn-sm btn-primary rounded-pill">
+                                            Ver publicaciones
                                         </a>
                                     </article>
                                 </div>

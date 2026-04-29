@@ -1,6 +1,7 @@
 const mockAzureBlob = {
     uploadBlob: jest.fn(),
     getBlobUrl: jest.fn(),
+    getBlobSasUrl: jest.fn(),
     deleteBlob: jest.fn()
 };
 
@@ -22,6 +23,7 @@ describe('Pruebas Unitarias - Subida de Video', () => {
         // Reset mocks
         mockAzureBlob.uploadBlob.mockReset();
         mockAzureBlob.getBlobUrl.mockReset();
+        mockAzureBlob.getBlobSasUrl.mockReset();
         mockAzureBlob.deleteBlob.mockReset();
         db.query.mockReset();
 
@@ -56,7 +58,7 @@ describe('Pruebas Unitarias - Subida de Video', () => {
     test('Debe subir video exitosamente', async () => {
         // Arrange
         mockAzureBlob.uploadBlob.mockResolvedValue({ success: true });
-        mockAzureBlob.getBlobUrl.mockReturnValue('https://azure.com/video.mp4');
+        mockAzureBlob.getBlobSasUrl.mockResolvedValue('https://azure.com/video.mp4?sas=token');
         db.query.mockResolvedValue([]); // No duplicate name
 
         // Act
@@ -65,11 +67,12 @@ describe('Pruebas Unitarias - Subida de Video', () => {
         // Assert
         expect(res.json).toHaveBeenCalledWith({
             ok: true,
-            mensaje: 'Video cargado correctamente',
-            url: 'https://azure.com/video.mp4',
+            mensaje: 'El video se ha publicado correctamente',
+            url: 'https://azure.com/video.mp4?sas=token',
             blobName: expect.stringContaining('videos/1/')
         });
         expect(mockAzureBlob.uploadBlob).toHaveBeenCalled();
+        expect(mockAzureBlob.getBlobSasUrl).toHaveBeenCalled();
         expect(db.query).toHaveBeenCalledTimes(2); // Check duplicate and insert
     });
 
@@ -182,7 +185,7 @@ describe('Pruebas Unitarias - Subida de Video', () => {
     test('Debe manejar URL demasiado larga', async () => {
         // Arrange
         mockAzureBlob.uploadBlob.mockResolvedValue({ success: true });
-        mockAzureBlob.getBlobUrl.mockReturnValue('a'.repeat(300)); // URL too long
+        mockAzureBlob.getBlobSasUrl.mockReturnValue('a'.repeat(300)); // URL too long
         db.query.mockResolvedValue([]); // No duplicate
 
         // Act

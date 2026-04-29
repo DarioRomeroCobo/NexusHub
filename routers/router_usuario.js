@@ -17,16 +17,29 @@ const {
 const { getUsuarios } = require('../controllers/userController');
 
 const {
+    mostrarEstadisticas,
+    obtenerEstadisticasYoutubeApi
+} = require('../controllers/estadisticasRedController');
+
+const {
     mostrarSubirVideo,
-    cargarVideo
+    cargarVideo,
+    mostrarGaleriaPublicar,
+    mostrarPublicacionVideo,
+    publicarVideo
 } = require('../controllers/videoController');
 
 const {
     mostrarVincularYoutube,
     iniciarVinculacionYoutube,
     callbackYoutubeOAuth,
-    desvincularYoutube
+    desvincularYoutube,
+    subirVideoYoutube
 } = require('../controllers/youtubeController');
+
+const {
+    mostrarEstadisticasPublicaciones
+} = require('../controllers/estadisticasController');
 
 const { verificarAutenticacion, verificarNoAutenticado } = require("../utils/middleware-auth");
 const upload = multer({ storage: multer.memoryStorage() });
@@ -36,6 +49,12 @@ router.get("/registro", verificarNoAutenticado, mostrarRegistro);
 router.get("/ver-usuarios", getUsuarios);
 router.get("/inicio-sesion", verificarNoAutenticado, mostrarInicioSesion);
 router.get("/subir-video", verificarAutenticacion, mostrarSubirVideo);
+
+router.get("/publicar-video", verificarAutenticacion, mostrarGaleriaPublicar);
+
+router.get("/publicacion-video", verificarAutenticacion, mostrarPublicacionVideo);
+router.post("/api/publicar-video", verificarAutenticacion, upload.single('video'), publicarVideo);
+
 router.post("/api/", registrarUsuario);
 router.post("/api/login", validarSesion);
 router.get("/logout", logout);
@@ -47,4 +66,13 @@ router.get("/vincular-youtube", verificarAutenticacion, mostrarVincularYoutube);
 router.get("/youtube/auth", verificarAutenticacion, iniciarVinculacionYoutube);
 router.get("/youtube/callback", verificarAutenticacion, callbackYoutubeOAuth);
 router.post("/youtube/desvincular", verificarAutenticacion, desvincularYoutube);
+router.post("/api/youtube/subir-video", verificarAutenticacion, subirVideoYoutube);
+router.get("/api/youtube/estadisticas", verificarAutenticacion, obtenerEstadisticasYoutubeApi);
+
+router.get("/estadisticas", verificarAutenticacion, (req, res) => {
+    res.render("estadisticas-general");
+});
+router.get("/estadisticas-redsocial", verificarAutenticacion, mostrarEstadisticas);
+router.get("/estadisticas-publicaciones", verificarAutenticacion, mostrarEstadisticasPublicaciones);
+
 module.exports = router;

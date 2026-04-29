@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="es">
+<%- include("fragments/head") %>
+
+<body class="d-flex flex-column min-vh-100 bg-light">
+    <%- include("fragments/header") %>
+    <%- include("fragments/navbar") %>
+
+    <main class="flex-grow-1 py-4 py-md-5">
+        <div class="container">
+
+            <section class="d-flex align-items-center mb-4">
+                <a href="/usuario/estadisticas" class="btn btn-white shadow-sm rounded-pill me-3">
+                    <i class="fa-solid fa-arrow-left"></i>
+                </a>
+                <div>
+                    <h1 class="h3 fw-bold mb-0">Rendimiento por Red Social</h1>
+                    <p class="text-muted mb-0">Análisis global de tus métricas acumuladas.</p>
+                </div>
+            </section>
+
+            <% if (locals.redes && redes.length > 0) { %>
+                
+                <div class="row g-4">
+                    
+                    <div class="col-lg-8">
+                        <article class="card border-0 shadow-sm rounded-4 p-4 bg-white h-100">
+                            <div class="d-flex justify-content-between align-items-center mb-4">
+                                <h2 class="h5 fw-bold mb-0 text-primary">Interacción Acumulada</h2>
+                                <div class="d-flex align-items-center">
+                                    <i class="fa-brands fa-youtube text-danger me-2"></i>
+                                    <span class="fw-semibold">YouTube</span>
+                                </div>
+                            </div>
+                            
+                            <div style="position: relative; height: 350px; width: 100%;">
+                                <canvas id="graficaRedSocial"></canvas>
+                            </div>
+                        </article>
+                    </div>
+
+                    <div class="col-lg-4">
+                        <div class="d-flex flex-column gap-3 h-100">
+                            
+                            <div class="card border-0 shadow-sm rounded-4 p-4 bg-white border-start border-danger border-4">
+                                <p class="text-muted small fw-bold text-uppercase mb-1">Visualizaciones Totales</p>
+                                <h2 class="fw-bold mb-0" id="num-vistas">0</h2>
+                            </div>
+
+                            <div class="card border-0 shadow-sm rounded-4 p-4 bg-white border-start border-primary border-4">
+                                <p class="text-muted small fw-bold text-uppercase mb-1">Me Gusta Totales</p>
+                                <h2 class="fw-bold mb-0" id="num-likes">0</h2>
+                            </div>
+
+                            <div class="card border-0 shadow-sm rounded-4 p-4 bg-dark text-white">
+                                <p class="text-white-50 small fw-bold text-uppercase mb-1">Comunidad (Subs)</p>
+                                <h2 class="fw-bold mb-0" id="num-subs">0</h2>
+                            </div>
+
+                            <div class="card border-0 shadow-sm rounded-4 p-4 bg-white flex-grow-1">
+                                <h6 class="fw-bold mb-3 small text-muted text-uppercase">Cuenta Vinculada</h6>
+                                <div class="d-flex align-items-center">
+                                    <div class="flex-shrink-0">
+                                        <img src="<%= redes[0].canalFotoUrl %>" alt="Canal" class="rounded-circle border" width="45" height="45" onerror="this.src='/img/default-user.png'">
+                                    </div>
+                                    <div class="ms-3 overflow-hidden">
+                                        <p class="mb-0 fw-bold text-truncate"><%= redes[0].usuario %></p>
+                                        <small class="text-success"><i class="fa-solid fa-circle-check me-1"></i>Sincronizado</small>
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+
+            <% } else { %>
+                
+                <section class="card border-0 shadow-sm rounded-4 p-5 text-center bg-white">
+                    <div class="py-5">
+                        <i class="fa-solid fa-chart-pie fa-4x text-light-emphasis mb-4"></i>
+                        <h2 class="h4 fw-bold"><%= locals.error ? "Error al cargar datos" : "Sin datos disponibles" %></h2>
+                        <p class="text-muted mb-4"><%= locals.error || "No hemos encontrado redes vinculadas para mostrar estadísticas globales." %></p>
+                        <a href="/usuario/vincular-youtube" class="btn btn-primary rounded-pill px-4">Vincular YouTube</a>
+                    </div>
+                </section>
+
+            <% } %>
+
+        </div>
+    </main>
+
+    <%- include("fragments/footer") %>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <script>
+        // Usamos una función anónima para no contaminar el scope global
+        (function() {
+            
+            const datosRedes = <%- JSON.stringify(locals.redes || []) %>;
+
+            if (datosRedes.length > 0) {
+                // 1. Cálculos de agregación (NH-101)
+                const totalVistas = datosRedes.reduce((acc, r) => acc + (Number(r.vistas) || 0), 0);
+                const totalLikes = datosRedes.reduce((acc, r) => acc + (Number(r.likes) || 0), 0);
+                const totalComentarios = datosRedes.reduce((acc, r) => acc + (Number(r.comentarios) || 0), 0);
+                const suscriptores = Number(datosRedes[0].suscriptores) || 0;
+
+                // 2. Inyectar datos en el DOM
+                const vElement = document.getElementById('num-vistas');
+                const lElement = document.getElementById('num-likes');
+                const sElement = document.getElementById('num-subs');
+
+                if(vElement) vElement.innerText = totalVistas.toLocaleString();
+                if(lElement) lElement.innerText = totalLikes.toLocaleString();
+                if(sElement) sElement.innerText = suscriptores.toLocaleString();
+
+                // 3. Renderizar Gráfica de Chart.js
+                const canvas = document.getElementById('graficaRedSocial');
+                if (canvas) {
+                    const ctx = canvas.getContext('2d');
+                    new Chart(ctx, {
+                        type: 'bar',
+                        data: {
+                            labels: ['Vistas', 'Likes', 'Comentarios'],
+                            datasets: [{
+                                label: 'Métricas Globales',
+                                data: [totalVistas, totalLikes, totalComentarios],
+                                backgroundColor: [
+                                    'rgba(255, 0, 0, 0.7)',   // Rojo YouTube
+                                    'rgba(54, 162, 235, 0.7)', // Azul Likes
+                                    'rgba(255, 193, 7, 0.7)'   // Amarillo Comentarios
+                                ],
+                                borderRadius: 12,
+                                borderWidth: 0
+                            }]
+                        },
+                        options: {
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: { display: false }
+                            },
+                            scales: {
+                                y: { 
+                                    beginAtZero: true,
+                                    grid: { color: '#f8f9fa' }
+                                },
+                                x: { 
+                                    grid: { display: false } 
+                                }
+                            }
+                        }
+                    });
+                }
+            }
+        })();
+    </script>
+</body>
+</html>

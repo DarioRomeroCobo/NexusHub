@@ -8,19 +8,20 @@
     <%- include("fragments/header") %>
     <%- include("fragments/navbar") %>
         <main class="flex-grow-1 d-flex align-items-center justify-content-center py-5 registro-main-bg">
-    <div class="card shadow-sm rounded-4 " style="width: 100%; max-width: 400px;">
-        <div class="card-body p-4">
-            <h2 class="text-center mb-4">Iniciar Sesión</h2>
+    <div class="container auth-container">
+        <div class="card shadow-lg border-0 rounded-4 auth-card">
+            <div class="card-body p-4 p-md-5">
+            <h2 class="h4 text-center mb-4 auth-title">Iniciar Sesión</h2>
             
             <form id="loginForm">
                 <div class="mb-3">
-                    <label for="correo" class="form-label">Correo electrónico</label>
-                    <input type="email" class="form-control" id="correo" name="correo" pattern="^([\w\d.]+@+[\w]+.+[\w])$"required placeholder="nombre@ejemplo.com">
+                    <label for="correo" class="form-label auth-label">Correo electrónico</label>
+                    <input type="email" class="form-control form-control-lg border-primary auth-input" id="correo" name="correo" pattern="^([\w\d.]+@+[\w]+.+[\w])$"required placeholder="nombre@ejemplo.com">
                 </div>
                 
                 <div class="mb-3">
-                    <label for="password" class="form-label">Contraseña</label>
-                    <input type="password" class="form-control" id="password" name="password" pattern=".*\S.*" required placeholder="••••••••">
+                    <label for="password" class="form-label auth-label">Contraseña</label>
+                    <input type="password" class="form-control form-control-lg border-primary auth-input" id="password" name="password" pattern=".*\S.*" required placeholder="••••••••">
                 </div>
 
                 <div id="mensajeError" class="alert alert-danger d-none" role="alert">
@@ -28,14 +29,15 @@
                     <p>El correo debe de cumplir el formato estándar, y la contraseña no puede estar vacía.</p>
                 </div>
 
-                <button type="submit" class="btn btn-primary w-100 mt-3">Entrar a NexusHub</button>
+                <button type="submit" class="btn btn-gradient w-100 btn-lg rounded-pill fw-bold mt-2">Entrar a NexusHub</button>
             </form>
 
             <div class="text-center mt-4">
-                <p class="small text-muted">¿No tienes cuenta? <a href="/usuario/registro">Regístrate aquí</a></p>
+                <p class="small auth-footer-text mb-0">¿No tienes cuenta? <a href="/usuario/registro">Regístrate aquí</a></p>
             </div>
         </div>
     </div>
+</div>
 </main>
 
 

@@ -7,7 +7,7 @@ const db = require('../utils/middleware-bd');
 const pool = require('../connection');
 const routerUsuarios = require('../routers/router_usuario');
 
-describe('Integracion bottom-up vincular YouTube', () => {
+describe('Integracion bottom-up vincular youtube', () => {
     let app;
     const correosCreados = new Set();
 
@@ -15,26 +15,22 @@ describe('Integracion bottom-up vincular YouTube', () => {
 
     const generarCorreoUnico = () => {
         const unico = `${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
-        return `it_yt_${unico}@nexushub.test`;
+        return `it_youtube_${unico}@nexushub.test`;
     };
 
     const borrarUsuarioPorCorreo = async (correo) => {
-        if (!correo) return;
+        if (!correo) {
+            return;
+        }
         await db.query('DELETE FROM usuario WHERE correo = @p0', [correo]);
     };
 
     const crearUsuario = async (correo, passwordPlano) => {
         const hash = await bcrypt.hash(passwordPlano, 10);
-        await db.query(
-            'INSERT INTO usuario (correo, contraseña) VALUES (@p0, @p1)',
-            [correo, hash]
-        );
+        await db.query('INSERT INTO usuario (correo, contraseña) VALUES (@p0, @p1)', [correo, hash]);
         correosCreados.add(correo);
     };
 
-    // ──────────────────────────────────────────────────────────────────────────
-    // Configuración de la app de test (misma que en los otros ficheros de integración)
-    // ──────────────────────────────────────────────────────────────────────────
     beforeAll(() => {
         app = express();
         app.set('view engine', 'ejs');
@@ -42,14 +38,16 @@ describe('Integracion bottom-up vincular YouTube', () => {
         app.use(express.json());
         app.use(express.urlencoded({ extended: true }));
         app.use(session({
-            secret: 'test_yt_secret',
+            secret: 'test_youtube_secret',
             resave: false,
             saveUninitialized: false,
-            cookie: { secure: false }
+            cookie: {
+                secure: false
+            }
         }));
         app.use((req, res, next) => {
-            res.locals.user      = req.session.usuarioId  || null;
-            res.locals.correo    = req.session.correo     || null;
+            res.locals.user = req.session.usuarioId || null;
+            res.locals.correo = req.session.correo || null;
             res.locals.isLoggedIn = req.session.isLoggedIn || false;
             next();
         });
@@ -73,14 +71,10 @@ describe('Integracion bottom-up vincular YouTube', () => {
     afterAll(async () => {
         try {
             await pool.close();
-        } catch (_) {
-            // Si el pool ya fue cerrado por otra suite, lo ignoramos
+        } catch (err) {
+            // Si el pool ya estaba cerrado por otro test, ignoramos el error.
         }
     });
-
-    // ──────────────────────────────────────────────────────────────────────────
-    // Tests
-    // ──────────────────────────────────────────────────────────────────────────
 
     test('GET /usuario/vincular-youtube redirige a login cuando no hay sesión', async () => {
         const response = await request(app).get('/usuario/vincular-youtube');
@@ -89,34 +83,25 @@ describe('Integracion bottom-up vincular YouTube', () => {
         expect(response.headers.location).toBe('/usuario/inicio-sesion');
     });
 
-    test('GET /usuario/vincular-youtube devuelve respuesta de redirección sin sesión', async () => {
+    test('GET /usuario/vincular-youtube sin sesión devuelve mensaje de redirección', async () => {
         const response = await request(app).get('/usuario/vincular-youtube');
 
         expect(response.headers['content-type']).toMatch(/text\/plain/);
         expect(response.text).toMatch(/redirecting to \/usuario\/inicio-sesion/i);
     });
 
-    test('GET /usuario/vincular-youtube también redirige sin autenticación', async () => {
-        const response = await request(app).get('/usuario/vincular-youtube');
-
-        expect(response.status).toBe(302);
-        expect(response.status).not.toBe(401);
-        expect(response.status).not.toBe(403);
-    });
-
-    test('GET /usuario/vincular-youtube también es accesible con sesión activa', async () => {
+    test('GET /usuario/vincular-youtube responde correctamente con sesión activa', async () => {
         const correo = generarCorreoUnico();
         await crearUsuario(correo, 'Valida@123');
 
         const agent = request.agent(app);
 
-        // Iniciar sesión primero
         const loginResponse = await agent
             .post('/usuario/api/login')
             .send({ correo, password: 'Valida@123' });
+
         expect(loginResponse.status).toBe(200);
 
-        // Acceder a vincular-youtube con sesión activa
         const response = await agent.get('/usuario/vincular-youtube');
 
         expect(response.status).toBe(200);
@@ -124,11 +109,12 @@ describe('Integracion bottom-up vincular YouTube', () => {
         expect(response.text).toMatch(/youtube/i);
     });
 
-    test('GET /usuario/vincular-youtube con sesión muestra UI de conexión OAuth', async () => {
+    test('GET /usuario/vincular-youtube muestra UI de conexión OAuth con sesión', async () => {
         const correo = generarCorreoUnico();
         await crearUsuario(correo, 'Valida@123');
 
         const agent = request.agent(app);
+
         const loginResponse = await agent
             .post('/usuario/api/login')
             .send({ correo, password: 'Valida@123' });

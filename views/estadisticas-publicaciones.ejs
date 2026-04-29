@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="es">
+<%- include("fragments/head") %>
+
+    <body class="d-flex flex-column min-vh-100 bg-light">
+        <%- include("fragments/header") %>
+            <%- include("fragments/navbar") %>
+
+                <main class="flex-grow-1 py-4 py-md-5">
+                    <div class="container">
+                        <section class="card stats-hero-card border-0 shadow-sm rounded-4 p-4 p-md-5 bg-white mb-4">
+                            <div class="d-flex flex-wrap justify-content-between align-items-start gap-2">
+                                <div>
+                                    <h1 class="h3 fw-bold mb-1 text-white">Estadísticas de tus últimas 5 publicaciones
+                                    </h1>
+                                    <p class=" mb-0 text-white">
+                                        <% if (canal) { %>
+                                            Canal de YouTube: <span class="fw-semibold">
+                                                <%= canal %>
+                                            </span>
+                                            <% } %>
+
+                                    </p>
+                                </div>
+                                <span class="badge text-bg-light border fs-6">Total: <%= totalPublicaciones || 0 %>
+                                        </span>
+                            </div>
+                            <p class="small mt-3 mb-0 text-white-50">
+                                Última actualización: <%= ultimaActualizacion ? new
+                                    Date(ultimaActualizacion).toLocaleString('es-ES') : 'No disponible' %>
+                            </p>
+                        </section>
+
+                        <% if (error) { %>
+                            <section class="alert alert-warning rounded-4 shadow-sm" role="alert">
+                                <h2 class="h6 fw-bold mb-2">No se pudieron cargar las estadísticas</h2>
+                                <p class="mb-3">
+                                    <%= error %>
+                                </p>
+                                <a href="/usuario/vincular-youtube"
+                                    class="btn btn-gradient rounded-pill px-4 py-2 fw-semibold">
+                                    Vincular o renovar YouTube
+                                </a>
+                            </section>
+                            <% } else if (!publicaciones || publicaciones.length===0) { %>
+                                <section class="card border-0 shadow-sm rounded-4 p-4 bg-white text-center">
+                                    <h2 class="h5 fw-bold mb-2">Aún no hay publicaciones para mostrar</h2>
+                                    <p class="text-muted mb-0">Cuando publiques videos en YouTube, aquí verás sus
+                                        métricas recientes.</p>
+                                    <a href="/usuario/publicar-video" class="btn btn-primary rounded-pill m-3">
+                                        Publica ya tus videos
+                                    </a>
+                                </section>
+                                <% } else { %>
+                                    <% if (errorSeriesVideos) { %>
+                                        <section class="alert alert-warning rounded-4 shadow-sm" role="alert">
+                                            <%= errorSeriesVideos %>
+                                        </section>
+                                    <% } %>
+
+                                    <section class="d-flex flex-column gap-3">
+                                        <% publicaciones.forEach(function(publicacion, index) { %>
+                                            <article class="card border-0 shadow-sm rounded-4 p-3 p-md-4 bg-white">
+                                                <div class="row g-3 align-items-center">
+                                                    <div class="col-12 col-md-3 col-lg-2">
+                                                        <img src="<%= publicacion.miniatura %>"
+                                                            class="img-fluid rounded-3"
+                                                            alt="Miniatura de <%= publicacion.titulo %>">
+                                                    </div>
+                                                    <div class="col-12 col-md-9 col-lg-10">
+                                                        <div
+                                                            class="d-flex flex-wrap justify-content-between align-items-start gap-2 mb-2">
+                                                            <h2 class="h4 fw-bold mb-0">
+                                                                <%= publicacion.titulo %>
+                                                            </h2>
+                                                            <span class="text-muted small">
+                                                                <%= publicacion.fechaPublicacion ? new
+                                                                    Date(publicacion.fechaPublicacion).toLocaleDateString('es-ES')
+                                                                    : 'Sin fecha' %>
+                                                            </span>
+                                                        </div>
+                                                        <div class="d-flex flex-wrap gap-2 mb-3">
+                                                            <span class="badge text-bg-light border fs-6">👁️
+                                                                Visualizaciones: <%=
+                                                                    publicacion.vistas.toLocaleString('es-ES') %></span>
+                                                            <span class="badge text-bg-light border fs-6">👍 Me gusta:
+                                                                <%= publicacion.meGusta.toLocaleString('es-ES') %>
+                                                            </span>
+                                                            <span class="badge text-bg-light border fs-6">👎 No me
+                                                                gusta: <%= publicacion.noMeGusta.toLocaleString('es-ES')
+                                                                    %>
+                                                            </span>
+                                                            <span class="badge text-bg-light border fs-6">💬
+                                                                Comentarios: <%=
+                                                                    publicacion.comentarios.toLocaleString('es-ES') %>
+                                                            </span>
+                                                            <span class="badge text-bg-light border fs-6">💰
+                                                                Monetización: <%= publicacion.monetizable ? 'SI' : 'NO'
+                                                                    %>
+                                                            </span>
+                                                        </div>
+
+                                                        <details class="metricas-desplegable mb-3" data-video-id="<%= publicacion.id %>"
+                                                            <%= index === 0 ? 'open' : '' %>>
+                                                            <summary class="btn btn-sm btn-outline-secondary rounded-pill px-3 py-2 fw-semibold">
+                                                                Ver gráficas de los últimos 30 días
+                                                            </summary>
+
+                                                            <div class="row g-2 mt-2">
+                                                                <div class="col-6 col-lg-3">
+                                                                    <div class="border rounded-3 p-2">
+                                                                        <p class="small fw-semibold text-muted mb-1">
+                                                                            Visualizaciones</p>
+                                                                        <div
+                                                                            style="position: relative; height: 150px; width: 100%;">
+                                                                            <canvas class="mini-metrica-chart"
+                                                                                data-titulo="Visualizaciones"
+                                                                                data-video-id="<%= publicacion.id %>"
+                                                                                data-metrica="vistasTotal"
+                                                                                data-color="rgba(13, 110, 253, 0.85)"
+                                                                                data-indice="<%= index %>"></canvas>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                                <div class="col-6 col-lg-3">
+                                                                    <div class="border rounded-3 p-2">
+                                                                        <p class="small fw-semibold text-muted mb-1">Me
+                                                                            gusta</p>
+                                                                        <div
+                                                                            style="position: relative; height: 150px; width: 100%;">
+                                                                            <canvas class="mini-metrica-chart"
+                                                                                data-titulo="Me gusta"
+                                                                                data-video-id="<%= publicacion.id %>"
+                                                                                data-metrica="meGustaTotal"
+                                                                                data-color="rgba(25, 135, 84, 0.85)"
+                                                                                data-indice="<%= index %>"></canvas>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                                <div class="col-6 col-lg-3">
+                                                                    <div class="border rounded-3 p-2">
+                                                                        <p class="small fw-semibold text-muted mb-1">No me
+                                                                            gusta</p>
+                                                                        <div
+                                                                            style="position: relative; height: 150px; width: 100%;">
+                                                                            <canvas class="mini-metrica-chart"
+                                                                                data-titulo="No me gusta"
+                                                                                data-video-id="<%= publicacion.id %>"
+                                                                                data-metrica="noMeGustaTotal"
+                                                                                data-color="rgba(220, 53, 69, 0.85)"
+                                                                                data-indice="<%= index %>"></canvas>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                                <div class="col-6 col-lg-3">
+                                                                    <div class="border rounded-3 p-2">
+                                                                        <p class="small fw-semibold text-muted mb-1">
+                                                                            Comentarios</p>
+                                                                        <div
+                                                                            style="position: relative; height: 150px; width: 100%;">
+                                                                            <canvas class="mini-metrica-chart"
+                                                                                data-titulo="Comentarios"
+                                                                                data-video-id="<%= publicacion.id %>"
+                                                                                data-metrica="comentariosTotal"
+                                                                                data-color="rgba(111, 66, 193, 0.85)"
+                                                                                data-indice="<%= index %>"></canvas>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </details>
+
+                                                        <a href="<%= publicacion.url %>" target="_blank"
+                                                            rel="noopener noreferrer"
+                                                            class="btn btn-sm btn-outline-primary rounded-pill px-3">
+                                                            Ver en YouTube
+                                                        </a>
+                                                    </div>
+                                                </div>
+                                            </article>
+                                            <% }); %>
+                                    </section>
+                                    <% } %>
+                    </div>
+                </main>
+
+                <%- include("fragments/footer") %>
+
+                    <% if (!error && publicaciones && publicaciones.length> 0) { %>
+                        <script id="publicaciones-temporal-data" type="application/json"><%- JSON.stringify(publicaciones || []) %></script>
+                        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+                        <script>
+                            const publicacionesTemporalJson = document.getElementById('publicaciones-temporal-data');
+                            const publicacionesTemporal = publicacionesTemporalJson
+                                ? JSON.parse(publicacionesTemporalJson.textContent || '[]')
+                                : [];
+
+                            const seriesPorVideo = new Map(
+                                publicacionesTemporal.map((publicacion) => [String(publicacion.id), Array.isArray(publicacion.serieTemporal) ? publicacion.serieTemporal : []])
+                            );
+
+                            const formatoNumero = (valor) => Number(valor || 0).toLocaleString('es-ES');
+                            const formatearFechaCorta = (fechaIso) => {
+                                const fecha = new Date(`${fechaIso}T00:00:00`);
+                                if (Number.isNaN(fecha.getTime())) {
+                                    return fechaIso || '';
+                                }
+                                return fecha.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit' });
+                            };
+
+                            const chartsInstanciados = new WeakSet();
+
+                            const crearMiniChart = (canvas) => {
+                                if (chartsInstanciados.has(canvas)) {
+                                    return;
+                                }
+
+                                const titulo = canvas.dataset.titulo || 'Métrica';
+                                const videoId = String(canvas.dataset.videoId || '');
+                                const metrica = canvas.dataset.metrica || 'vistas';
+                                const color = canvas.dataset.color || 'rgba(13, 110, 253, 0.85)';
+
+                                const serieVideo = seriesPorVideo.get(videoId) || [];
+                                const etiquetas = serieVideo.map((punto) => formatearFechaCorta(punto.fecha));
+                                const valores = serieVideo.map((punto) => Number(punto[metrica] || 0));
+
+                                new Chart(canvas, {
+                                    type: 'line',
+                                    data: {
+                                        labels: etiquetas,
+                                        datasets: [{
+                                            label: titulo,
+                                            data: valores,
+                                            borderColor: color,
+                                            backgroundColor: color.replace('0.85', '0.20'),
+                                            fill: true,
+                                            tension: 0.3,
+                                            pointRadius: valores.length <= 7 ? 2 : 0,
+                                            pointHoverRadius: 4,
+                                            borderWidth: 2
+                                        }]
+                                    },
+                                    options: {
+                                        responsive: true,
+                                        maintainAspectRatio: false,
+                                        plugins: {
+                                            legend: { display: false },
+                                            tooltip: {
+                                                callbacks: {
+                                                    label: (context) => `${titulo}: ${formatoNumero(context.raw)}`
+                                                }
+                                            }
+                                        },
+                                        scales: {
+                                            x: {
+                                                ticks: {
+                                                    display: true,
+                                                    maxRotation: 0,
+                                                    autoSkip: true,
+                                                    maxTicksLimit: 4,
+                                                    font: { size: 10 }
+                                                },
+                                                grid: { display: false },
+                                                border: { display: false }
+                                            },
+                                            y: {
+                                                position: 'left',
+                                                beginAtZero: true,
+                                                ticks: {
+                                                    display: true,
+                                                    callback: (value) => formatoNumero(value),
+                                                    maxTicksLimit: 4,
+                                                    font: { size: 10 }
+                                                },
+                                                grid: { display: true, color: 'rgba(0,0,0,0.06)' },
+                                                border: { display: false }
+                                            }
+                                        }
+                                    }
+                                });
+                                chartsInstanciados.add(canvas);
+                            };
+
+                            const inicializarChartsEnPanel = (panel) => {
+                                const miniCharts = panel.querySelectorAll('.mini-metrica-chart');
+                                miniCharts.forEach((canvas) => crearMiniChart(canvas));
+                            };
+
+                            const panelesMetricas = document.querySelectorAll('.metricas-desplegable');
+                            panelesMetricas.forEach((panel) => {
+                                if (panel.open) {
+                                    inicializarChartsEnPanel(panel);
+                                }
+
+                                panel.addEventListener('toggle', () => {
+                                    if (panel.open) {
+                                        inicializarChartsEnPanel(panel);
+                                    }
+                                });
+                            });
+                        </script>
+                        <% } %>
+    </body>
+
+</html>
