@@ -1,5 +1,12 @@
 # 📘 NexusHub - Crea. Conecta. Crece.
 [Enlace al sitio web](https://nexushub-f2cch6dvg5fgdgg9.spaincentral-01.azurewebsites.net/)
+
+NexusHub es una plataforma para pequeños creadores que permite subir, programar y publicar publicaciones, además de centralizar analíticas de diferenten redes sociales.
+
+- Hosting: Microsoft Azure
+- Almacenamiento de archivos: Azure Blob Storage
+- APIs de YouTube utilizadas: YouTube Data API v3 y YouTube Analytics API v2, con OAuth2 (`https://oauth2.googleapis.com/token`).
+
 # 💻 Ejecución en Local (Windows)
 
 ## 🚀 Requisitos previos
@@ -44,3 +51,9 @@ npm start
 ```
 Cuando el servidor esté en marcha, abre en tu navegador y escribe:
 http://localhost:3000
+
+
+
+
+
+
